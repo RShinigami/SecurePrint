@@ -1,0 +1,93 @@
+# ─────────────────────────────────────────────
+#  Python
+# ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# ─────────────────────────────────────────────
+#  Virtual Environment
+# ─────────────────────────────────────────────
+venv/
+env/
+ENV/
+.venv/
+.env
+
+# ─────────────────────────────────────────────
+#  Security — NEVER commit these
+# ─────────────────────────────────────────────
+database/master.key
+database/*.key
+*.key
+*.pem
+*.p12
+secrets.py
+config_secret.py
+
+# ─────────────────────────────────────────────
+#  Database — contains biometric data
+# ─────────────────────────────────────────────
+database/*.db
+database/*.sqlite
+database/*.sqlite3
+
+# ─────────────────────────────────────────────
+#  Biometric Data — NEVER commit fingerprint images
+# ─────────────────────────────────────────────
+data/real/
+data/altered/
+data/debug/
+*.BMP
+*.bmp
+*.tif
+*.tiff
+
+# Keep the data folder structure but not the images
+!data/.gitkeep
+!data/pairs.json
+
+# ─────────────────────────────────────────────
+#  IDE & Editors
+# ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ─────────────────────────────────────────────
+#  Logs & Temp
+# ─────────────────────────────────────────────
+*.log
+*.tmp
+*.temp
+logs/
+
+# ─────────────────────────────────────────────
+#  OS
+# ─────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
