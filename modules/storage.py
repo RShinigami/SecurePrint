@@ -27,7 +27,7 @@ from modules.encryption import (
     verify_integrity,
 )
 
-DB_DIR  = "database"
+DB_DIR  = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'database')
 DB_FILE = os.path.join(DB_DIR, "secureprint.db")
 
 
@@ -70,7 +70,11 @@ class SecurePrintDB:
         print(f"[OK] Base de données initialisée : {self.db_path}")
         return conn
 
-    def enroll_user(self, name: str, template, finger_label: str = "unknown") -> bool:
+    def enroll_user(self, name: str, template, finger_label: str = "unknown") -> tuple:
+        """
+        Returns (success: bool, message: str)
+        If user already exists, updates their template instead of duplicating.
+        """
         try:
             cursor = self.conn.cursor()
             now    = datetime.now().isoformat()
@@ -78,33 +82,35 @@ class SecurePrintDB:
             cursor.execute("SELECT id FROM users WHERE name = ?", (name,))
             existing = cursor.fetchone()
 
+            encrypted = encrypt_template(template, self.key)
+            integrity = compute_hash(template)
+
             if existing:
                 user_id = existing[0]
-                print(f"[INFO] Utilisateur '{name}' déjà existant (id={user_id})")
+                cursor.execute("""
+                    UPDATE templates SET encrypted_blob=?, integrity_hash=?, finger_label=?, created_at=?
+                    WHERE user_id=?
+                """, (encrypted, integrity, finger_label, now, user_id))
+                self.conn.commit()
+                print(f"[OK] Template mis à jour pour '{name}'")
+                return True, "updated"
             else:
                 cursor.execute(
                     "INSERT INTO users (name, created_at) VALUES (?, ?)",
                     (name, now)
                 )
                 user_id = cursor.lastrowid
-                print(f"[OK] Utilisateur créé : '{name}' (id={user_id})")
-
-            encrypted = encrypt_template(template, self.key)
-            integrity = compute_hash(template)
-
-            cursor.execute("""
-                INSERT INTO templates (user_id, encrypted_blob, integrity_hash, finger_label, created_at)
-                VALUES (?, ?, ?, ?, ?)
-            """, (user_id, encrypted, integrity, finger_label, now))
-
-            self.conn.commit()
-            print(f"[OK] Template enrôlé pour '{name}' — doigt: {finger_label}")
-            print(f"     Taille chiffrée : {len(encrypted)} bytes")
-            return True
+                cursor.execute("""
+                    INSERT INTO templates (user_id, encrypted_blob, integrity_hash, finger_label, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (user_id, encrypted, integrity, finger_label, now))
+                self.conn.commit()
+                print(f"[OK] Utilisateur créé et enrôlé : '{name}'")
+                return True, "created"
 
         except Exception as e:
             print(f"[ERREUR] Enrôlement échoué pour '{name}' : {e}")
-            return False
+            return False, str(e)
 
     def get_all_templates(self) -> list:
         cursor = self.conn.cursor()

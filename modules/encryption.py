@@ -26,7 +26,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 # Dossier où stocker la clé maîtresse (séparé de la base de données)
-KEY_DIR  = "database"
+KEY_DIR  = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'database')
 KEY_FILE = os.path.join(KEY_DIR, "master.key")
 
 

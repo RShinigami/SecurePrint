@@ -1,0 +1,309 @@
+{
+  "same_finger_pairs": [
+    {
+      "type": "same_finger",
+      "real": "real\\476__M_Left_middle_finger.BMP",
+      "altered": "altered\\476__M_Left_middle_finger_CR.BMP",
+      "person": 476,
+      "finger": "Left_middle"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\592__M_Right_middle_finger.BMP",
+      "altered": "altered\\592__M_Right_middle_finger_CR.BMP",
+      "person": 592,
+      "finger": "Right_middle"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\567__M_Right_ring_finger.BMP",
+      "altered": "altered\\567__M_Right_ring_finger_CR.BMP",
+      "person": 567,
+      "finger": "Right_ring"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\76__F_Right_middle_finger.BMP",
+      "altered": "altered\\76__F_Right_middle_finger_CR.BMP",
+      "person": 76,
+      "finger": "Right_middle"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\13__F_Right_middle_finger.BMP",
+      "altered": "altered\\13__F_Right_middle_finger_CR.BMP",
+      "person": 13,
+      "finger": "Right_middle"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\514__F_Left_ring_finger.BMP",
+      "altered": "altered\\514__F_Left_ring_finger_CR.BMP",
+      "person": 514,
+      "finger": "Left_ring"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\61__M_Left_little_finger.BMP",
+      "altered": "altered\\61__M_Left_little_finger_CR.BMP",
+      "person": 61,
+      "finger": "Left_little"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\417__M_Left_little_finger.BMP",
+      "altered": "altered\\417__M_Left_little_finger_CR.BMP",
+      "person": 417,
+      "finger": "Left_little"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\552__M_Right_little_finger.BMP",
+      "altered": "altered\\552__M_Right_little_finger_CR.BMP",
+      "person": 552,
+      "finger": "Right_little"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\399__M_Right_thumb_finger.BMP",
+      "altered": "altered\\399__M_Right_thumb_finger_Obl.BMP",
+      "person": 399,
+      "finger": "Right_thumb"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\292__M_Left_little_finger.BMP",
+      "altered": "altered\\292__M_Left_little_finger_CR.BMP",
+      "person": 292,
+      "finger": "Left_little"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\556__F_Left_ring_finger.BMP",
+      "altered": "altered\\556__F_Left_ring_finger_CR.BMP",
+      "person": 556,
+      "finger": "Left_ring"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\246__M_Right_ring_finger.BMP",
+      "altered": "altered\\246__M_Right_ring_finger_CR.BMP",
+      "person": 246,
+      "finger": "Right_ring"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\93__M_Right_index_finger.BMP",
+      "altered": "altered\\93__M_Right_index_finger_CR.BMP",
+      "person": 93,
+      "finger": "Right_index"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\43__F_Left_index_finger.BMP",
+      "altered": "altered\\43__F_Left_index_finger_CR.BMP",
+      "person": 43,
+      "finger": "Left_index"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\595__M_Left_thumb_finger.BMP",
+      "altered": "altered\\595__M_Left_thumb_finger_CR.BMP",
+      "person": 595,
+      "finger": "Left_thumb"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\462__M_Left_little_finger.BMP",
+      "altered": "altered\\462__M_Left_little_finger_CR.BMP",
+      "person": 462,
+      "finger": "Left_little"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\436__M_Right_middle_finger.BMP",
+      "altered": "altered\\436__M_Right_middle_finger_CR.BMP",
+      "person": 436,
+      "finger": "Right_middle"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\560__F_Right_ring_finger.BMP",
+      "altered": "altered\\560__F_Right_ring_finger_CR.BMP",
+      "person": 560,
+      "finger": "Right_ring"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\56__F_Right_index_finger.BMP",
+      "altered": "altered\\56__F_Right_index_finger_CR.BMP",
+      "person": 56,
+      "finger": "Right_index"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\224__M_Left_ring_finger.BMP",
+      "altered": "altered\\224__M_Left_ring_finger_CR.BMP",
+      "person": 224,
+      "finger": "Left_ring"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\293__F_Right_ring_finger.BMP",
+      "altered": "altered\\293__F_Right_ring_finger_CR.BMP",
+      "person": 293,
+      "finger": "Right_ring"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\573__F_Right_index_finger.BMP",
+      "altered": "altered\\573__F_Right_index_finger_CR.BMP",
+      "person": 573,
+      "finger": "Right_index"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\115__F_Left_middle_finger.BMP",
+      "altered": "altered\\115__F_Left_middle_finger_CR.BMP",
+      "person": 115,
+      "finger": "Left_middle"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\589__M_Left_middle_finger.BMP",
+      "altered": "altered\\589__M_Left_middle_finger_CR.BMP",
+      "person": 589,
+      "finger": "Left_middle"
+    }
+  ],
+  "different_finger_pairs": [
+    {
+      "type": "different_finger",
+      "file1": "real\\476__M_Left_middle_finger.BMP",
+      "file2": "real\\592__M_Right_middle_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\592__M_Right_middle_finger.BMP",
+      "file2": "real\\567__M_Right_ring_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\567__M_Right_ring_finger.BMP",
+      "file2": "real\\76__F_Right_middle_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\76__F_Right_middle_finger.BMP",
+      "file2": "real\\13__F_Right_middle_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\13__F_Right_middle_finger.BMP",
+      "file2": "real\\514__F_Left_ring_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\514__F_Left_ring_finger.BMP",
+      "file2": "real\\61__M_Left_little_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\61__M_Left_little_finger.BMP",
+      "file2": "real\\417__M_Left_little_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\417__M_Left_little_finger.BMP",
+      "file2": "real\\552__M_Right_little_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\552__M_Right_little_finger.BMP",
+      "file2": "real\\399__M_Right_thumb_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\399__M_Right_thumb_finger.BMP",
+      "file2": "real\\292__M_Left_little_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\292__M_Left_little_finger.BMP",
+      "file2": "real\\556__F_Left_ring_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\556__F_Left_ring_finger.BMP",
+      "file2": "real\\246__M_Right_ring_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\246__M_Right_ring_finger.BMP",
+      "file2": "real\\93__M_Right_index_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\93__M_Right_index_finger.BMP",
+      "file2": "real\\43__F_Left_index_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\43__F_Left_index_finger.BMP",
+      "file2": "real\\595__M_Left_thumb_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\595__M_Left_thumb_finger.BMP",
+      "file2": "real\\462__M_Left_little_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\462__M_Left_little_finger.BMP",
+      "file2": "real\\436__M_Right_middle_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\436__M_Right_middle_finger.BMP",
+      "file2": "real\\560__F_Right_ring_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\560__F_Right_ring_finger.BMP",
+      "file2": "real\\56__F_Right_index_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\56__F_Right_index_finger.BMP",
+      "file2": "real\\224__M_Left_ring_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\224__M_Left_ring_finger.BMP",
+      "file2": "real\\293__F_Right_ring_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\293__F_Right_ring_finger.BMP",
+      "file2": "real\\573__F_Right_index_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\573__F_Right_index_finger.BMP",
+      "file2": "real\\115__F_Left_middle_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\115__F_Left_middle_finger.BMP",
+      "file2": "real\\589__M_Left_middle_finger.BMP"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\589__M_Left_middle_finger.BMP",
+      "file2": "real\\476__M_Left_middle_finger.BMP"
+    }
+  ],
+  "total_real": 25,
+  "total_altered": 25,
+  "persons": 25
+}

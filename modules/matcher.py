@@ -25,8 +25,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from modules.template  import generate_template
 from modules.storage   import SecurePrintDB
 
-# Seuil optimal calibré sur notre dataset (EER = 0.33)
-DEFAULT_THRESHOLD = 0.33
+# Seuil optimal calibré sur notre dataset
+DEFAULT_THRESHOLD = 0.31
+MIN_GAP = 0.0  # disabled — gap check hurts recall on low-res images
 
 
 # ─────────────────────────────────────────────
@@ -45,13 +46,8 @@ def cosine_distance(t1: np.ndarray, t2: np.ndarray) -> float:
 
 
 def combined_score(t1: np.ndarray, t2: np.ndarray) -> float:
-    """
-    Score combiné : moyenne pondérée euclidienne + cosinus.
-    Plus robuste que chaque métrique seule.
-    """
     euc = euclidean_distance(t1, t2)
     cos = cosine_distance(t1, t2)
-    # Normaliser euclidienne (typiquement entre 0 et 6)
     euc_norm = euc / 6.0
     return float(0.5 * euc_norm + 0.5 * cos)
 
@@ -64,7 +60,9 @@ def identify(query_template: np.ndarray, db: SecurePrintDB,
              threshold: float = DEFAULT_THRESHOLD) -> dict:
     """
     Compare un template de requête contre tous les templates en base.
-    Retourne le meilleur match si en dessous du seuil.
+    Accepte uniquement si :
+      1. best score < threshold
+      2. gap between best and second best >= MIN_GAP (confident match)
     """
     all_templates = db.get_all_templates()
 
@@ -86,8 +84,11 @@ def identify(query_template: np.ndarray, db: SecurePrintDB,
         })
 
     scores.sort(key=lambda x: x["combined"])
-    best     = scores[0]
-    accepted = best["combined"] < threshold
+    best   = scores[0]
+    second = scores[1] if len(scores) > 1 else None
+
+    gap = (second["combined"] - best["combined"]) if second else 1.0
+    accepted = best["combined"] < threshold and (MIN_GAP == 0.0 or gap >= MIN_GAP)
 
     return {
         "accepted"  : accepted,
@@ -95,6 +96,7 @@ def identify(query_template: np.ndarray, db: SecurePrintDB,
         "score"     : best["combined"],
         "euclidean" : best["euclidean"],
         "cosine"    : best["cosine"],
+        "gap"       : round(gap, 4),
         "threshold" : threshold,
         "all_scores": scores,
     }
@@ -236,8 +238,9 @@ def enroll_all(db: SecurePrintDB):
 
         template = generate_template(img_path)
         if template is not None:
-            db.enroll_user(name, template, finger)
-            enrolled += 1
+            ok, _ = db.enroll_user(name, template, finger)
+            if ok:
+                enrolled += 1
 
     print(f"\n[OK] {enrolled} nouveaux utilisateurs enrôlés")
     db.print_summary()

@@ -1,368 +1,438 @@
 """
-Module 4 : Coffre-fort Flou (Fuzzy Vault)
-Fichier : modules/fuzzy_vault.py
+modules/fuzzy_vault.py — Fuzzy Vault Scheme (Juels & Sudan, 2002)
 
-Rôle : Protéger les minutiae en les cachant parmi des points factices.
-       Même en cas de vol de la base, impossible de distinguer
-       les vrais points des faux sans la clé secrète.
+Principle:
+    A secret key is encoded as coefficients of a polynomial p(x) over GF(PRIME).
+    Genuine points  : (x_i, p(x_i))  — lie ON the polynomial, x_i from minutiae
+    Chaff points    : (x_j, random_y) — do NOT lie on the polynomial
+    Stored vault    : shuffled (x, y) pairs only — no template, no key, no labels
 
-Principe (Juels & Sudan, 2002) :
-    1. On génère un polynôme secret P(x) à partir d'une clé utilisateur
-    2. Les vrais points de minutiae sont projetés SUR ce polynôme : (x, P(x))
-    3. Des points factices (chaff) sont ajoutés HORS du polynôme : (x, P(x)+bruit)
-    4. Le vault = tous les points mélangés → indiscernables sans la clé
-    5. Pour vérifier : on teste si les nouveaux minutiae tombent près du polynôme
+Lock:
+    1. Derive polynomial coefficients from secret key
+    2. Map minutiae (x, y, type) → integer x-values
+    3. Compute genuine vault points (x, p(x))
+    4. Generate chaff points (random x, random y ≠ p(x))
+    5. Shuffle and store — vault reveals nothing without the biometric
 
-Simplification académique :
-    - Polynôme de degré 3 (suffisant pour démonstration)
-    - Distance de tolérance configurable (pour les variations biométriques)
-    - Pas d'interpolation de Lagrange complète (hors périmètre)
+Unlock:
+    1. Map query minutiae → integer x-values
+    2. Find vault points whose x is within TOLERANCE of a query x
+    3. Try combinations of POLY_DEGREE+1 candidate points
+    4. Lagrange-interpolate → check if recovered polynomial matches key hash
+    5. Accept if hash matches
+
+Security note:
+    The vault stores ONLY (x, y) integer pairs.
+    Without the correct minutiae, an attacker cannot distinguish genuine from chaff
+    (there are C(n_genuine + n_chaff, POLY_DEGREE+1) combinations to try).
 """
 
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import numpy as np
-import random
-import json
 import hashlib
+import json
+import random
+import numpy as np
+from itertools import combinations
 
 
 # ─────────────────────────────────────────────
-#  CONFIGURATION
+#  PARAMETERS
 # ─────────────────────────────────────────────
-POLYNOMIAL_DEGREE = 3      # degré du polynôme secret
-CHAFF_RATIO       = 3      # nb points factices = CHAFF_RATIO × nb vrais points
-TOLERANCE         = 0.12   # tolérance pour considérer un point "sur" le polynôme
-COORD_RANGE       = (0.0, 1.0)  # plage des coordonnées normalisées
+PRIME        = 7919    # prime field — large enough for minutiae coords on 96×103 images
+POLY_DEGREE  = 4       # need POLY_DEGREE+1 = 5 genuine matches to reconstruct
+N_CHAFF      = 60      # fake points added to the vault
+TOLERANCE    = 6       # pixel tolerance for matching minutiae across scans
+MIN_MATCHES  = POLY_DEGREE + 1
+
+
+# ─────────────────────────────────────────────
+#  FINITE FIELD ARITHMETIC (mod PRIME)
 # ─────────────────────────────────────────────
 
+def _extended_gcd(a, b):
+    if a == 0:
+        return b, 0, 1
+    g, x, y = _extended_gcd(b % a, a)
+    return g, y - (b // a) * x, x
+
+
+def _mod_inv(a, prime=PRIME):
+    g, x, _ = _extended_gcd(a % prime, prime)
+    return x % prime if g == 1 else None
+
+
+def _poly_eval(coeffs, x, prime=PRIME):
+    """Evaluate polynomial at x using Horner's method (mod prime)."""
+    result = 0
+    for c in reversed(coeffs):
+        result = (result * x + c) % prime
+    return result
+
+
+def _lagrange_interpolate(points, prime=PRIME):
+    """
+    Reconstruct polynomial value at x=0 (the free term / secret anchor)
+    from POLY_DEGREE+1 points using Lagrange interpolation mod prime.
+    Returns the full coefficient list of the interpolated polynomial.
+    """
+    n = len(points)
+    # We only need to verify the polynomial, so compute all coefficients
+    # via Newton's divided differences (simpler in finite field)
+    # Instead: evaluate at x=0,1,...,n-1 and check consistency
+    # Simplest correct approach: compute p(0) via Lagrange and compare to stored hash
+
+    result = 0
+    xs = [p[0] for p in points]
+    ys = [p[1] for p in points]
+
+    for i in range(n):
+        num = ys[i]
+        den = 1
+        for j in range(n):
+            if i == j:
+                continue
+            num = (num * (0 - xs[j])) % prime
+            den = (den * (xs[i] - xs[j])) % prime
+        inv = _mod_inv(den, prime)
+        if inv is None:
+            return None
+        result = (result + num * inv) % prime
+
+    return result  # p(0) — the secret anchor value
+
+
+# ─────────────────────────────────────────────
+#  KEY ↔ POLYNOMIAL
+# ─────────────────────────────────────────────
+
+def _key_to_coeffs(secret_key: bytes, degree: int = POLY_DEGREE, prime: int = PRIME) -> list:
+    """Derive stable polynomial coefficients from a secret key."""
+    coeffs = []
+    h = hashlib.sha256(secret_key).digest()
+    for i in range(degree + 1):
+        block = hashlib.sha256(h + i.to_bytes(2, 'big')).digest()
+        coeffs.append(int.from_bytes(block[:4], 'big') % prime)
+    return coeffs
+
+
+def _secret_anchor(coeffs: list, prime: int = PRIME) -> int:
+    """p(0) = coeffs[0] — the value we verify after interpolation."""
+    return coeffs[0] % prime
+
+
+def _anchor_hash(anchor: int) -> str:
+    """SHA-256 of the secret anchor — stored in vault for verification."""
+    return hashlib.sha256(anchor.to_bytes(4, 'big')).hexdigest()
+
+
+# ─────────────────────────────────────────────
+#  MINUTIAE → INTEGER X-VALUES
+# ─────────────────────────────────────────────
+
+def _minutiae_to_xs(minutiae: list, prime: int = PRIME) -> list:
+    """
+    Map minutiae (x, y, type) to unique integer x-values for the polynomial.
+    Uses pixel coordinates directly — small images keep values well below PRIME.
+    Deduplicates to avoid two genuine points sharing the same x.
+    """
+    seen = set()
+    xs = []
+    for (px, py, _) in minutiae:
+        val = (int(px) * 200 + int(py)) % prime
+        if val not in seen:
+            seen.add(val)
+            xs.append(val)
+    return xs
+
+
+# ─────────────────────────────────────────────
+#  FUZZY VAULT CLASS
+# ─────────────────────────────────────────────
 
 class FuzzyVault:
-    """
-    Implémentation simplifiée du Fuzzy Vault Scheme.
-    Protège un ensemble de points biométriques par obfuscation polynomiale.
-    """
 
-    def __init__(self, secret_key: str = None):
+    def __init__(self, secret_key: bytes):
         """
         Args:
-            secret_key (str): Clé secrète pour générer le polynôme.
-                              Si None, une clé aléatoire est générée.
+            secret_key: Raw bytes, e.g. os.urandom(32).
+                        Use the same key for lock and unlock.
         """
-        if secret_key is None:
-            secret_key = hashlib.sha256(os.urandom(32)).hexdigest()[:16]
-        self.secret_key  = secret_key
-        self.coefficients = self._derive_polynomial(secret_key)
+        self.secret_key = secret_key
+        self.coeffs     = _key_to_coeffs(secret_key)
+        self.anchor     = _secret_anchor(self.coeffs)
+        self.anchor_hash = _anchor_hash(self.anchor)
 
-    def _derive_polynomial(self, key: str) -> list:
+    def lock(self, minutiae: list) -> dict:
         """
-        Dérive les coefficients du polynôme secret depuis la clé.
-        Résultat reproductible : même clé → même polynôme.
-
-        P(x) = a0 + a1*x + a2*x² + a3*x³
+        Build the vault from raw minutiae.
 
         Args:
-            key (str): Clé secrète
+            minutiae: list of (x, y, type) — output of filter_minutiae()
 
         Returns:
-            list: Coefficients [a0, a1, a2, a3]
+            dict: vault with (x,y) pairs only — no template data, no labels
         """
-        # Hasher la clé pour obtenir des octets déterministes
-        key_bytes = hashlib.sha256(key.encode()).digest()
+        xs = _minutiae_to_xs(minutiae)
 
-        # Extraire 4 coefficients entre -1 et 1
-        coeffs = []
-        for i in range(POLYNOMIAL_DEGREE + 1):
-            val = int.from_bytes(key_bytes[i*2:(i+1)*2], 'big')
-            coeff = (val / 32767.5) - 1.0   # normaliser vers [-1, 1]
-            coeffs.append(round(coeff, 6))
+        if len(xs) < MIN_MATCHES:
+            print(f"[FuzzyVault] Not enough unique minutiae: {len(xs)} < {MIN_MATCHES}")
+            return {"vault_points": [], "anchor_hash": self.anchor_hash,
+                    "valid": False, "n_genuine": 0, "n_chaff": 0}
 
-        return coeffs
+        # Genuine points: (x, p(x))
+        genuine_xs  = set(xs)
+        genuine_pts = [(x, _poly_eval(self.coeffs, x)) for x in xs]
 
-    def _evaluate_polynomial(self, x: float) -> float:
-        """
-        Évalue P(x) = a0 + a1*x + a2*x² + a3*x³
-
-        Args:
-            x (float): Valeur d'entrée
-
-        Returns:
-            float: P(x) modulo 1 (ramené dans [0,1])
-        """
-        result = sum(c * (x ** i) for i, c in enumerate(self.coefficients))
-        # Ramener dans [0, 1] avec modulo
-        return abs(result) % 1.0
-
-    def lock(self, minutiae: list, chaff_ratio: int = CHAFF_RATIO) -> dict:
-        """
-        Crée le coffre-fort : cache les vrais points parmi des points factices.
-
-        Args:
-            minutiae (list): Liste de (x, y, type) normalisés
-            chaff_ratio (int): Nb de points factices par vrai point
-
-        Returns:
-            dict: Le vault contenant tous les points mélangés
-        """
-        if not minutiae:
-            return {"points": [], "n_genuine": 0, "n_chaff": 0}
-
-        genuine_points = []
-        chaff_points   = []
-
-        # ── Projeter les vrais points SUR le polynôme ─────
-        for (x, y, mtype) in minutiae:
-            px = x  # coordonnée x originale
-            py = self._evaluate_polynomial(px)  # y projeté sur P(x)
-            genuine_points.append({
-                "x"    : round(float(px), 6),
-                "y"    : round(float(py), 6),
-                "real" : True   # marqueur (sera retiré du vault final)
-            })
-
-        # ── Générer des points factices HORS du polynôme ──
-        n_chaff = len(minutiae) * chaff_ratio
-        attempts = 0
-        while len(chaff_points) < n_chaff and attempts < n_chaff * 10:
+        # Chaff points: random (x, y) guaranteed NOT on the polynomial
+        chaff_pts = []
+        attempts  = 0
+        while len(chaff_pts) < N_CHAFF and attempts < N_CHAFF * 20:
             attempts += 1
-            cx = random.uniform(0.0, 1.0)
-            cy = random.uniform(0.0, 1.0)
+            cx = random.randint(1, PRIME - 1)
+            if cx in genuine_xs:
+                continue
+            cy = random.randint(0, PRIME - 1)
+            if cy != _poly_eval(self.coeffs, cx):
+                chaff_pts.append((cx, cy))
+                genuine_xs.add(cx)  # prevent duplicate x in chaff
 
-            # Vérifier que le point factice n'est PAS sur le polynôme
-            poly_y = self._evaluate_polynomial(cx)
-            if abs(cy - poly_y) > TOLERANCE * 2:
-                chaff_points.append({
-                    "x"    : round(cx, 6),
-                    "y"    : round(cy, 6),
-                    "real" : False
-                })
-
-        # ── Mélanger et masquer le marqueur "real" ─────────
-        all_points = genuine_points + chaff_points
+        all_points = genuine_pts + chaff_pts
         random.shuffle(all_points)
 
-        # Retirer le marqueur "real" du vault stocké
-        vault_points = [{"x": p["x"], "y": p["y"]} for p in all_points]
-
-        vault = {
-            "points"    : vault_points,
-            "n_genuine" : len(genuine_points),
-            "n_chaff"   : len(chaff_points),
-            "n_total"   : len(vault_points),
-            "degree"    : POLYNOMIAL_DEGREE,
-        }
-
-        return vault
-
-    def unlock(self, new_minutiae: list, vault: dict,
-               tolerance: float = TOLERANCE) -> dict:
-        """
-        Tente d'ouvrir le coffre avec de nouveaux points biométriques.
-        Compte combien de nouveaux points tombent près du polynôme.
-
-        Args:
-            new_minutiae (list): Nouveaux points (x, y, type)
-            vault (dict): Le vault à ouvrir
-            tolerance (float): Distance max pour considérer un "match"
-
-        Returns:
-            dict: Résultat avec score et décision
-        """
-        if not vault.get("points") or not new_minutiae:
-            return {"unlocked": False, "score": 0.0, "matches": 0}
-
-        matches = 0
-        match_details = []
-
-        for (x, y, mtype) in new_minutiae:
-            poly_y  = self._evaluate_polynomial(x)
-            dist    = abs(y - poly_y)  # distance au polynôme
-
-            if dist <= tolerance:
-                matches += 1
-                match_details.append({
-                    "x": round(float(x), 4),
-                    "dist": round(dist, 4)
-                })
-
-        n_genuine = vault.get("n_genuine", 1)
-        score     = matches / max(len(new_minutiae), 1)
-
-        # Seuil : au moins 30% des points doivent matcher
-        threshold = 0.15
-        unlocked  = score >= threshold
+        print(f"[FuzzyVault] Vault locked — {len(genuine_pts)} genuine + {len(chaff_pts)} chaff = {len(all_points)} total")
 
         return {
-            "unlocked"  : unlocked,
-            "score"     : round(score, 4),
-            "matches"   : matches,
-            "tested"    : len(new_minutiae),
-            "threshold" : threshold,
-            "details"   : match_details[:5],  # premiers matches pour debug
+            "vault_points" : all_points,        # list of [x, y] — no labels
+            "anchor_hash"  : self.anchor_hash,  # SHA-256(p(0)) for verification
+            "valid"        : True,
+            "n_genuine"    : len(genuine_pts),
+            "n_chaff"      : len(chaff_pts),
+        }
+
+    def unlock(self, query_minutiae: list, vault: dict) -> dict:
+        """
+        Attempt to open the vault using query minutiae.
+
+        Steps:
+            1. Map query minutiae → x-values
+            2. Find vault points with x within TOLERANCE of a query x
+            3. Try all C(candidates, MIN_MATCHES) combinations
+            4. Lagrange-interpolate p(0) and compare to anchor_hash
+
+        Args:
+            query_minutiae: list of (x, y, type) from a new scan
+            vault: dict returned by lock()
+
+        Returns:
+            dict: unlocked (bool), score, matches found
+        """
+        if not vault.get("valid") or not vault.get("vault_points"):
+            return {"unlocked": False, "score": 0.0, "matches": 0, "candidates": 0}
+
+        vault_points = [tuple(p) for p in vault["vault_points"]]
+        stored_hash  = vault["anchor_hash"]
+        query_xs     = _minutiae_to_xs(query_minutiae)
+
+        # Step 1: collect candidate vault points near query x-values
+        candidates = []
+        for qx in query_xs:
+            for (vx, vy) in vault_points:
+                if abs(qx - vx) <= TOLERANCE:
+                    candidates.append((vx, vy))
+                    break  # one candidate per query minutia
+
+        n_candidates = len(candidates)
+        n_genuine    = vault.get("n_genuine", 1)
+
+        if n_candidates < MIN_MATCHES:
+            return {
+                "unlocked"   : False,
+                "score"      : n_candidates / max(n_genuine, 1),
+                "matches"    : n_candidates,
+                "candidates" : n_candidates,
+            }
+
+        # Step 2: try combinations until polynomial reconstructed
+        # Limit combinations to avoid exponential blowup on low-res images
+        max_combos = 2000
+        tested     = 0
+
+        for combo in combinations(candidates, MIN_MATCHES):
+            # Check no duplicate x-values (Lagrange requires distinct x)
+            xs_in_combo = [p[0] for p in combo]
+            if len(set(xs_in_combo)) < MIN_MATCHES:
+                continue
+
+            tested += 1
+            if tested > max_combos:
+                break
+
+            recovered_anchor = _lagrange_interpolate(list(combo))
+            if recovered_anchor is None:
+                continue
+
+            if _anchor_hash(recovered_anchor) == stored_hash:
+                return {
+                    "unlocked"   : True,
+                    "score"      : 1.0,
+                    "matches"    : n_candidates,
+                    "candidates" : n_candidates,
+                    "combos_tried": tested,
+                }
+
+        return {
+            "unlocked"    : False,
+            "score"       : n_candidates / max(n_genuine, 1),
+            "matches"     : n_candidates,
+            "candidates"  : n_candidates,
+            "combos_tried": tested,
         }
 
     def serialize(self, vault: dict) -> str:
-        """Sérialise le vault en JSON pour stockage."""
         return json.dumps(vault)
 
     def deserialize(self, vault_json: str) -> dict:
-        """Désérialise un vault depuis JSON."""
         return json.loads(vault_json)
 
 
 # ─────────────────────────────────────────────
-#  INTÉGRATION AVEC LE PIPELINE EXISTANT
+#  PIPELINE HELPERS
 # ─────────────────────────────────────────────
 
-def create_vault_from_image(image_path: str, secret_key: str) -> dict:
-    """
-    Pipeline complet : image → minutiae → vault.
-
-    Args:
-        image_path (str): Chemin vers l'image d'empreinte
-        secret_key (str): Clé secrète de l'utilisateur
-
-    Returns:
-        dict: {"vault": ..., "template": ..., "fv": FuzzyVault instance}
-    """
+def _get_minutiae(image_path: str):
+    """Run preprocessing + minutiae extraction on an image."""
     from modules.preprocessor import preprocess
-    from modules.minutiae     import extract_minutiae, filter_minutiae
-    from modules.template     import normalize_minutiae, generate_template
+    from modules.minutiae import extract_minutiae, filter_minutiae
 
-    # Prétraitement
-    original, normalized, binary, skeleton = preprocess(image_path)
+    _, _, _, skeleton = preprocess(image_path)
     if skeleton is None:
-        return None
-
-    # Minutiae
+        return None, None
     raw      = extract_minutiae(skeleton)
-    clean    = filter_minutiae(raw)
-    norm     = normalize_minutiae(clean, skeleton.shape)
-
-    # Fuzzy Vault
-    fv    = FuzzyVault(secret_key)
-    vault = fv.lock(norm)
-
-    # Template standard (pour comparaison)
-    template = generate_template(image_path)
-
-    return {"vault": vault, "template": template, "fv": fv}
+    filtered = filter_minutiae(raw, min_distance=8)
+    return filtered, skeleton.shape
 
 
-def verify_with_vault(image_path: str, vault: dict, secret_key: str) -> dict:
-    """
-    Vérifie une empreinte contre un vault existant.
+def lock_image(image_path: str, secret_key: bytes) -> dict:
+    """Full pipeline: image → vault."""
+    minutiae, _ = _get_minutiae(image_path)
+    if not minutiae:
+        return {"valid": False}
+    fv = FuzzyVault(secret_key)
+    return fv.lock(minutiae)
 
-    Args:
-        image_path (str): Nouvelle image à vérifier
-        vault (dict): Vault stocké
-        secret_key (str): Clé secrète
 
-    Returns:
-        dict: Résultat de l'ouverture du vault
-    """
-    from modules.preprocessor import preprocess
-    from modules.minutiae     import extract_minutiae, filter_minutiae
-    from modules.template     import normalize_minutiae
-
-    original, normalized, binary, skeleton = preprocess(image_path)
-    if skeleton is None:
-        return {"unlocked": False, "score": 0.0}
-
-    raw   = extract_minutiae(skeleton)
-    clean = filter_minutiae(raw)
-    norm  = normalize_minutiae(clean, skeleton.shape)
-
-    fv     = FuzzyVault(secret_key)
-    result = fv.unlock(norm, vault)
-    return result
+def unlock_image(image_path: str, vault: dict, secret_key: bytes) -> dict:
+    """Full pipeline: image + vault → unlock result."""
+    minutiae, _ = _get_minutiae(image_path)
+    if not minutiae:
+        return {"unlocked": False, "score": 0.0, "matches": 0, "candidates": 0}
+    fv = FuzzyVault(secret_key)
+    return fv.unlock(minutiae, vault)
 
 
 # ─────────────────────────────────────────────
-#  TEST COMPLET
+#  TEST — runs on actual pairs.json data
 # ─────────────────────────────────────────────
+
 if __name__ == "__main__":
     import json
 
-    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    real_dir    = os.path.join(root_dir, "data", "real")
-    altered_dir = os.path.join(root_dir, "data", "altered")
+    root_dir   = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    real_dir   = os.path.join(root_dir, "data", "real")
+    alt_dir    = os.path.join(root_dir, "data", "altered")
+    pairs_path = os.path.join(root_dir, "data", "pairs.json")
 
-    real_images    = sorted([f for f in os.listdir(real_dir)
-                              if f.lower().endswith('.bmp')])
-    altered_images = sorted([f for f in os.listdir(altered_dir)
-                              if f.lower().endswith('.bmp')])
+    with open(pairs_path) as f:
+        pairs = json.load(f)
 
-    if not real_images:
-        print("[ERREUR] Aucune image dans data/real/")
-        sys.exit(1)
+    print(f"\n{'='*60}")
+    print("  FUZZY VAULT — Correct Implementation Test")
+    print(f"  PRIME={PRIME}  DEGREE={POLY_DEGREE}  TOLERANCE={TOLERANCE}  CHAFF={N_CHAFF}")
+    print(f"{'='*60}\n")
 
-    SECRET_KEY = "secureprint_demo_2026"
+    # ── Quick sanity check on first pair ──────────────────
+    first      = pairs["same_finger_pairs"][0]
+    real_path  = os.path.join(root_dir, "data", first["real"])
+    alt_path   = os.path.join(root_dir, "data", first["altered"])
+    secret_key = os.urandom(32)
 
-    print(f"\n{'='*55}")
-    print("  TEST FUZZY VAULT")
-    print(f"{'='*55}\n")
+    print(f"── Sanity check: person {first['person']} ({first['finger']}) ──")
+    vault = lock_image(real_path, secret_key)
+    if vault["valid"]:
+        # Same finger (altered scan) — should unlock
+        r_same = unlock_image(alt_path, vault, secret_key)
+        print(f"  Same finger  : {'✓ UNLOCKED' if r_same['unlocked'] else '✗ LOCKED'}"
+              f"  candidates={r_same['candidates']}  combos={r_same.get('combos_tried', 0)}")
 
-    # ── Test 1 : Créer un vault ────────────────────────────
-    print("── Test 1 : Création du vault ──")
-    img1 = os.path.join(real_dir, real_images[0])
-    result = create_vault_from_image(img1, SECRET_KEY)
+        # Different finger — should stay locked
+        diff_pair = pairs["different_finger_pairs"][0]
+        diff_path = os.path.join(root_dir, "data", diff_pair["file2"])
+        r_diff    = unlock_image(diff_path, vault, secret_key)
+        print(f"  Diff finger  : {'✓ UNLOCKED' if r_diff['unlocked'] else '✗ LOCKED (correct)'}"
+              f"  candidates={r_diff['candidates']}")
 
-    if result is None:
-        print("[ERREUR] Impossible de créer le vault")
-        sys.exit(1)
-
-    vault = result["vault"]
-    print(f"[OK] Vault créé pour : {real_images[0]}")
-    print(f"     Points réels   : {vault['n_genuine']}")
-    print(f"     Points factices: {vault['n_chaff']}")
-    print(f"     Total dans vault: {vault['n_total']}")
-    print(f"     → Impossible de distinguer réels des factices ✓")
-
-    # ── Test 2 : Ouvrir avec le bon doigt (altéré) ────────
-    print(f"\n── Test 2 : Ouverture avec MÊME doigt (altéré) ──")
-    person_id  = real_images[0].split("__")[0]
-    match_alt  = [f for f in altered_images if f.startswith(person_id + "__")]
-
-    if match_alt:
-        img_alt = os.path.join(altered_dir, match_alt[0])
-        res2    = verify_with_vault(img_alt, vault, SECRET_KEY)
-        status  = "✓ OUVERT" if res2["unlocked"] else "✗ FERMÉ"
-        print(f"[{status}] Image : {match_alt[0]}")
-        print(f"   Score  : {res2['score']:.4f}  (seuil : {res2['threshold']})")
-        print(f"   Points matchés : {res2['matches']} / {res2['tested']}")
+        # Wrong key — should stay locked
+        r_key = unlock_image(alt_path, vault, os.urandom(32))
+        print(f"  Wrong key    : {'✓ UNLOCKED' if r_key['unlocked'] else '✗ LOCKED (correct)'}"
+              f"  candidates={r_key['candidates']}")
     else:
-        print("[INFO] Pas d'image altérée trouvée pour ce doigt")
+        print("  [SKIP] Not enough minutiae for sanity check")
 
-    # ── Test 3 : Tenter avec un MAUVAIS doigt ─────────────
-    print(f"\n── Test 3 : Tentative avec MAUVAIS doigt ──")
-    if len(real_images) > 1:
-        wrong_img = os.path.join(real_dir, real_images[1])
-        res3      = verify_with_vault(wrong_img, vault, SECRET_KEY)
-        status    = "✓ OUVERT" if res3["unlocked"] else "✗ FERMÉ"
-        print(f"[{status}] Image : {real_images[1]}")
-        print(f"   Score  : {res3['score']:.4f}  (seuil : {res3['threshold']})")
-        print(f"   → Mauvais doigt correctement rejeté : {not res3['unlocked']}")
+    # ── Full FAR / FRR evaluation ──────────────────────────
+    print(f"\n── Full evaluation on all {len(pairs['same_finger_pairs'])} pairs ──\n")
 
-    # ── Test 4 : Mauvaise clé ─────────────────────────────
-    print(f"\n── Test 4 : Tentative avec MAUVAISE clé ──")
-    fv_wrong   = FuzzyVault("wrong_key_12345")
-    from modules.preprocessor import preprocess
-    from modules.minutiae     import extract_minutiae, filter_minutiae
-    from modules.template     import normalize_minutiae
+    same_results = []   # True = correctly unlocked
+    diff_results = []   # True = correctly rejected (stayed locked)
 
-    _, _, _, skel = preprocess(img1)
-    raw   = extract_minutiae(skel)
-    clean = filter_minutiae(raw)
-    norm  = normalize_minutiae(clean, skel.shape)
-    res4  = fv_wrong.unlock(norm, vault)
-    status = "✓ OUVERT" if res4["unlocked"] else "✗ FERMÉ"
-    print(f"[{status}] Même doigt, mauvaise clé")
-    print(f"   Score : {res4['score']:.4f}")
-    print(f"   → Mauvaise clé rejetée : {not res4['unlocked']}")
+    for pair in pairs["same_finger_pairs"]:
+        rp  = os.path.join(root_dir, "data", pair["real"])
+        ap  = os.path.join(root_dir, "data", pair["altered"])
+        key = hashlib.sha256(str(pair["person"]).encode()).digest()  # deterministic per person
 
-    print(f"\n{'='*55}")
-    print("  FUZZY VAULT : TEST TERMINÉ")
-    print(f"{'='*55}\n")
+        vault = lock_image(rp, key)
+        if not vault["valid"]:
+            print(f"  [SKIP] person {pair['person']} — vault invalid")
+            continue
+
+        res = unlock_image(ap, vault, key)
+        same_results.append(res["unlocked"])
+        status = "✓" if res["unlocked"] else "✗"
+        print(f"  [{status}] person {pair['person']:4d}  same finger  "
+              f"candidates={res['candidates']:2d}  combos={res.get('combos_tried', 0):4d}")
+
+    print()
+    for pair in pairs["different_finger_pairs"]:
+        fp1 = os.path.join(root_dir, "data", pair["file1"])
+        fp2 = os.path.join(root_dir, "data", pair["file2"])
+        pid = int(os.path.basename(pair["file1"]).split("__")[0])
+        key = hashlib.sha256(str(pid).encode()).digest()
+
+        vault = lock_image(fp1, key)
+        if not vault["valid"]:
+            continue
+
+        res = unlock_image(fp2, vault, key)
+        # Correct behaviour = stays locked (False)
+        diff_results.append(not res["unlocked"])
+        status = "✓" if not res["unlocked"] else "✗ FALSE ACCEPT"
+        print(f"  [{status}] person {pid:4d}  diff finger  "
+              f"candidates={res['candidates']:2d}")
+
+    # ── Summary ───────────────────────────────────────────
+    if same_results and diff_results:
+        frr = 1.0 - (sum(same_results) / len(same_results))   # false reject rate
+        far = 1.0 - (sum(diff_results) / len(diff_results))   # false accept rate
+
+        print(f"\n{'='*60}")
+        print(f"  RESULTS")
+        print(f"{'='*60}")
+        print(f"  Same-finger pairs tested  : {len(same_results)}")
+        print(f"  Diff-finger pairs tested  : {len(diff_results)}")
+        print(f"  Correctly unlocked (GAR)  : {sum(same_results)}/{len(same_results)}  ({(1-frr)*100:.1f}%)")
+        print(f"  Correctly rejected        : {sum(diff_results)}/{len(diff_results)}  ({(1-far)*100:.1f}%)")
+        print(f"  FRR (false reject rate)   : {frr*100:.1f}%")
+        print(f"  FAR (false accept rate)   : {far*100:.1f}%")
+        print(f"{'='*60}\n")

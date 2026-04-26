@@ -43,42 +43,15 @@ def normalize_minutiae(minutiae, image_shape):
 
 
 def build_feature_vector(minutiae_normalized, template_size=TEMPLATE_SIZE):
-    """
-    Construit un vecteur de taille fixe à partir des minutiae normalisées.
-
-    Stratégie :
-    - Chaque minutiae contribue 3 valeurs : (x_norm, y_norm, type_val)
-    - On trie les minutiae par position (x puis y) pour la stabilité
-    - Si trop de minutiae → on garde les plus significatives
-    - Si pas assez       → on complète avec des zéros (padding)
-
-    Args:
-        minutiae_normalized (list): Minutiae normalisées
-        template_size (int): Taille du vecteur final (doit être multiple de 3)
-
-    Returns:
-        numpy.ndarray: Vecteur de caractéristiques de taille fixe
-    """
-    # Nombre max de minutiae qu'on peut encoder
     max_minutiae = template_size // 3
-
-    # Trier par position x puis y pour la reproductibilité
     sorted_m = sorted(minutiae_normalized, key=lambda m: (m[0], m[1]))
-
-    # Tronquer si trop de points
     sorted_m = sorted_m[:max_minutiae]
-
-    # Aplatir en vecteur : [x1, y1, t1, x2, y2, t2, ...]
     flat = []
     for (x, y, t) in sorted_m:
         flat.extend([x, y, t])
-
-    # Padding avec des zéros si pas assez de minutiae
     while len(flat) < template_size:
         flat.append(0.0)
-
-    vector = np.array(flat, dtype=np.float32)
-    return vector
+    return np.array(flat, dtype=np.float32)
 
 
 def compute_pairwise_distances(minutiae_normalized, max_pairs=21):
