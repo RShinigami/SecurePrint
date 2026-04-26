@@ -33,7 +33,7 @@ Fingerprint Image (.bmp)
          ▼
 ┌───────────────────┐
 │  3. Template       │  Normalized 85-value feature vector
-│     Generation     │  (64 position values + 21 pairwise distances)
+│     Generation     │  (64 position+angle values + 21 pairwise distances)
 └────────┬──────────┘
          │
          ▼
@@ -153,12 +153,12 @@ Evaluated on SOCOFing (96×103px images, 25 users):
 
 | Metric                       | Value |
 | ---------------------------- | ----- |
-| Optimal threshold (EER)      | 0.33  |
-| False Accept Rate (FAR)      | 20%   |
-| False Reject Rate (FRR)      | 24%   |
-| Accuracy                     | 78%   |
-| Avg score — same finger      | 0.24  |
-| Avg score — different finger | 0.39  |
+| Optimal threshold (EER)      | 0.326 |
+| False Accept Rate (FAR)      | 12%   |
+| False Reject Rate (FRR)      | 44%   |
+| Accuracy                     | 72%   |
+| Avg score — same finger      | 0.25  |
+| Avg score — different finger | 0.40  |
 
 The gap between same-finger scores (0.24) and different-finger scores (0.39) confirms the system can distinguish between identities. The 78% accuracy is a direct consequence of the low image resolution — commercial AFIS systems use 500dpi sensors producing images 10× larger, which yields much more stable minutiae coordinates.
 

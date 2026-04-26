@@ -37,6 +37,24 @@ def crossing_number(neighbors):
     return sum(abs(n[i] - n[i+1]) for i in range(8)) // 2
 
 
+def _compute_angle(skel, x, y, neighbors):
+    """
+    Estime l'angle de la minutie en degrees [0, 360)
+    en calculant la direction vers le(s) voisin(s) actif(s).
+    """
+    # Offsets (dx, dy) pour chaque voisin dans l'ordre horaire
+    offsets = [(-1,-1),(0,-1),(1,-1),(1,0),(1,1),(0,1),(-1,1),(-1,0)]
+    angles = []
+    for i, (dx, dy) in enumerate(offsets):
+        if neighbors[i] == 1:
+            angles.append(np.degrees(np.arctan2(-dy, dx)) % 360)
+    if not angles:
+        return 0.0
+    # Mean angle via circular mean
+    rad = [np.radians(a) for a in angles]
+    return float(np.degrees(np.arctan2(np.mean(np.sin(rad)), np.mean(np.cos(rad)))) % 360)
+
+
 def extract_minutiae(skeleton, border_margin=15):
     """
     Détecte toutes les minutiae dans une image squelettisée.
@@ -44,11 +62,11 @@ def extract_minutiae(skeleton, border_margin=15):
     Args:
         skeleton (numpy.ndarray): Image squelettisée (valeurs 0 ou 255)
         border_margin (int): Marge en pixels à ignorer sur les bords
-                             (les bords produisent beaucoup de faux positifs)
 
     Returns:
-        list: Liste de tuples (x, y, type)
+        list: Liste de tuples (x, y, type, angle)
               type = 'ending' ou 'bifurcation'
+              angle = direction en degrés [0, 360)
     """
     # Normalize: handle both bool (True/False) and uint8 (0/255) skeletons
     if skeleton.dtype == bool:
@@ -83,9 +101,11 @@ def extract_minutiae(skeleton, border_margin=15):
             cn = crossing_number(neighbors)
 
             if cn == 1:
-                minutiae.append((x, y, 'ending'))
+                angle = _compute_angle(skel, x, y, neighbors)
+                minutiae.append((x, y, 'ending', angle))
             elif cn >= 3:
-                minutiae.append((x, y, 'bifurcation'))
+                angle = _compute_angle(skel, x, y, neighbors)
+                minutiae.append((x, y, 'bifurcation', angle))
 
     endings      = sum(1 for m in minutiae if m[2] == 'ending')
     bifurcations = sum(1 for m in minutiae if m[2] == 'bifurcation')
@@ -141,14 +161,18 @@ def visualize_minutiae(original, minutiae, window_title="Minutiae"):
     # Convertir en couleur pour afficher des points colorés
     display = cv2.cvtColor(original, cv2.COLOR_GRAY2BGR)
 
-    for (x, y, mtype) in minutiae:
+    for (x, y, mtype, angle) in minutiae:
         if mtype == 'ending':
-            color = (0, 255, 0)    # Vert pour les terminaisons
+            color = (0, 255, 0)
             radius = 3
         else:
-            color = (0, 0, 255)    # Rouge pour les bifurcations
+            color = (0, 0, 255)
             radius = 3
         cv2.circle(display, (x, y), radius, color, -1)
+        # Draw angle direction line
+        dx = int(6 * np.cos(np.radians(angle)))
+        dy = int(-6 * np.sin(np.radians(angle)))
+        cv2.line(display, (x, y), (x + dx, y + dy), color, 1)
 
     # Légende
     cv2.putText(display, "Vert = Terminaison", (10, 20),

@@ -15,40 +15,38 @@ from modules.preprocessor import preprocess
 from modules.minutiae import extract_minutiae, filter_minutiae
 
 # Taille fixe du vecteur final (indépendant du nombre de minutiae détectées)
-TEMPLATE_SIZE = 64
+TEMPLATE_SIZE = 64  # must be multiple of 4 now: (x, y, type, angle) x 16
 
 
 def normalize_minutiae(minutiae, image_shape):
     """
-    Normalise les coordonnées des minutiae entre 0 et 1
-    par rapport à la taille de l'image.
-    Cela rend le template indépendant de la résolution de l'image.
-
-    Args:
-        minutiae (list): Liste de (x, y, type)
-        image_shape (tuple): (hauteur, largeur) de l'image
+    Normalise les coordonnées et l'angle des minutiae.
 
     Returns:
-        list: Liste de (x_norm, y_norm, type_val)
-              type_val : 0.0 = ending, 1.0 = bifurcation
+        list: Liste de (x_norm, y_norm, type_val, angle_norm)
+              angle_norm : angle / 360 → [0, 1]
     """
     h, w = image_shape
     normalized = []
-    for (x, y, mtype) in minutiae:
-        x_norm = x / w
-        y_norm = y / h
-        type_val = 0.0 if mtype == 'ending' else 1.0
-        normalized.append((x_norm, y_norm, type_val))
+    for m in minutiae:
+        x, y, mtype = m[0], m[1], m[2]
+        angle = m[3] if len(m) > 3 else 0.0
+        x_norm     = x / w
+        y_norm     = y / h
+        type_val   = 0.0 if mtype == 'ending' else 1.0
+        angle_norm = angle / 360.0
+        normalized.append((x_norm, y_norm, type_val, angle_norm))
     return normalized
 
 
 def build_feature_vector(minutiae_normalized, template_size=TEMPLATE_SIZE):
-    max_minutiae = template_size // 3
+    # 4 values per minutia: (x, y, type, angle) → template_size // 4 minutiae
+    max_minutiae = template_size // 4
     sorted_m = sorted(minutiae_normalized, key=lambda m: (m[0], m[1]))
     sorted_m = sorted_m[:max_minutiae]
     flat = []
-    for (x, y, t) in sorted_m:
-        flat.extend([x, y, t])
+    for m in sorted_m:
+        flat.extend([m[0], m[1], m[2], m[3]])
     while len(flat) < template_size:
         flat.append(0.0)
     return np.array(flat, dtype=np.float32)
@@ -132,8 +130,8 @@ def generate_template(image_path):
     template = np.concatenate([position_vector, distance_vector])
 
     print(f"[OK] Template généré — taille : {template.shape[0]} valeurs")
-    print(f"     → Positions  : {len(position_vector)} valeurs")
-    print(f"     → Distances  : {len(distance_vector)} valeurs")
+    print(f"     → Positions+Angles : {len(position_vector)} valeurs")
+    print(f"     → Distances        : {len(distance_vector)} valeurs")
     print(f"     → Min: {template.min():.4f} | Max: {template.max():.4f} | Moy: {template.mean():.4f}")
     print(f"{'='*50}\n")
 
