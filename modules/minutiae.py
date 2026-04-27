@@ -110,9 +110,9 @@ def extract_minutiae(skeleton, border_margin=15):
     endings      = sum(1 for m in minutiae if m[2] == 'ending')
     bifurcations = sum(1 for m in minutiae if m[2] == 'bifurcation')
 
-    print(f"[OK] Minutiae détectées : {len(minutiae)} total")
-    print(f"     → Terminaisons  : {endings}")
-    print(f"     → Bifurcations  : {bifurcations}")
+    print(f"[OK] Minutiae detectees : {len(minutiae)} total")
+    print(f"     - Terminaisons  : {endings}")
+    print(f"     - Bifurcations  : {bifurcations}")
 
     return minutiae
 

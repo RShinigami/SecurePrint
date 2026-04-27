@@ -66,6 +66,17 @@ class SecurePrintDB:
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """)
+        # Phase 4 : table de démonstration stockage EN CLAIR (avant chiffrement)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS templates_plain (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id      INTEGER NOT NULL,
+                raw_blob     BLOB    NOT NULL,
+                finger_label TEXT    DEFAULT 'unknown',
+                created_at   TEXT    NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
         conn.commit()
         print(f"[OK] Base de données initialisée : {self.db_path}")
         return conn
@@ -192,6 +203,87 @@ class SecurePrintDB:
         print(f"  Chiffrement   : AES-256 (Fernet) ✓")
         print(f"  Clé séparée   : {os.path.abspath('database/master.key')} ✓")
         print(f"{'='*45}\n")
+
+    # ── Phase 4 : Stockage EN CLAIR (démonstration avant chiffrement) ──────
+
+    def enroll_user_plaintext(self, name: str, template, finger_label: str = "unknown") -> tuple:
+        """
+        Phase 4 — Stocke le template EN CLAIR dans templates_plain.
+        Permet de visualiser que les données sont lisibles sans chiffrement.
+        NE PAS utiliser en production — démonstration pédagogique uniquement.
+        """
+        try:
+            cursor = self.conn.cursor()
+            now    = datetime.now().isoformat()
+
+            cursor.execute("SELECT id FROM users WHERE name = ?", (name,))
+            existing = cursor.fetchone()
+            if existing:
+                user_id = existing[0]
+            else:
+                cursor.execute("INSERT INTO users (name, created_at) VALUES (?, ?)", (name, now))
+                user_id = cursor.lastrowid
+
+            raw_bytes = template.astype("float32").tobytes()
+            cursor.execute("""
+                INSERT INTO templates_plain (user_id, raw_blob, finger_label, created_at)
+                VALUES (?, ?, ?, ?)
+            """, (user_id, raw_bytes, finger_label, now))
+            self.conn.commit()
+            print(f"[Phase 4] Template EN CLAIR stocké pour '{name}' ({len(raw_bytes)} bytes)")
+            print(f"          ⚠ Lisible sans clé — voir Phase 5 pour le chiffrement")
+            return True, "plaintext_created"
+        except Exception as e:
+            print(f"[ERREUR] Stockage en clair échoué pour '{name}' : {e}")
+            return False, str(e)
+
+    def get_user_template_plaintext(self, name: str):
+        """
+        Phase 4 — Récupère et reconstruit le template depuis le stockage en clair.
+        """
+        import numpy as np
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            SELECT t.raw_blob FROM templates_plain t
+            JOIN users u ON t.user_id = u.id
+            WHERE u.name = ? LIMIT 1
+        """, (name,))
+        row = cursor.fetchone()
+        if not row:
+            print(f"[INFO] Aucun template en clair pour '{name}'")
+            return None
+        return np.frombuffer(row[0], dtype="float32").copy()
+
+    def compare_plain_vs_encrypted(self, name: str):
+        """
+        Démonstration visuelle Phase 4 → Phase 5 :
+        Affiche le template en clair vs chiffré pour le même utilisateur.
+        """
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            SELECT t.raw_blob FROM templates_plain t
+            JOIN users u ON t.user_id = u.id WHERE u.name = ? LIMIT 1
+        """, (name,))
+        plain_row = cursor.fetchone()
+
+        cursor.execute("""
+            SELECT t.encrypted_blob FROM templates t
+            JOIN users u ON t.user_id = u.id WHERE u.name = ? LIMIT 1
+        """, (name,))
+        enc_row = cursor.fetchone()
+
+        print(f"\n{'='*55}")
+        print(f"  COMPARAISON STOCKAGE : '{name}'")
+        print(f"{'='*55}")
+        if plain_row:
+            raw = plain_row[0]
+            print(f"  [Phase 4] EN CLAIR   : {len(raw)} bytes")
+            print(f"            Aperçu     : {raw[:20]}...  ← lisible, exploitable")
+        if enc_row:
+            enc = enc_row[0]
+            print(f"  [Phase 5] CHIFFRÉ    : {len(enc)} bytes")
+            print(f"            Aperçu     : {enc[:20]}...  ← illisible sans clé ✓")
+        print(f"{'='*55}\n")
 
     def close(self):
         self.conn.close()

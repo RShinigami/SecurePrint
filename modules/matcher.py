@@ -240,6 +240,7 @@ def enroll_all(db: SecurePrintDB):
         if template is not None:
             ok, _ = db.enroll_user(name, template, finger)
             if ok:
+                db.enroll_user_plaintext(name, template, finger)  # Phase 4 demo
                 enrolled += 1
 
     print(f"\n[OK] {enrolled} nouveaux utilisateurs enrôlés")

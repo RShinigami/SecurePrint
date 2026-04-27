@@ -129,10 +129,10 @@ def generate_template(image_path):
     # Étape 6 : Concaténation → template final
     template = np.concatenate([position_vector, distance_vector])
 
-    print(f"[OK] Template généré — taille : {template.shape[0]} valeurs")
-    print(f"     → Positions+Angles : {len(position_vector)} valeurs")
-    print(f"     → Distances        : {len(distance_vector)} valeurs")
-    print(f"     → Min: {template.min():.4f} | Max: {template.max():.4f} | Moy: {template.mean():.4f}")
+    print(f"[OK] Template genere - taille : {template.shape[0]} valeurs")
+    print(f"     - Positions+Angles : {len(position_vector)} valeurs")
+    print(f"     - Distances        : {len(distance_vector)} valeurs")
+    print(f"     - Min: {template.min():.4f} | Max: {template.max():.4f} | Moy: {template.mean():.4f}")
     print(f"{'='*50}\n")
 
     return template
