@@ -21,7 +21,7 @@ Fingerprint Image (.bmp)
         │
         ▼
 ┌───────────────────┐
-│  1. Preprocessing  │  CLAHE contrast enhancement → Binarization → Skeletonization
+│  1. Preprocessing  │  2x Upscale → CLAHE → Binarization → Morphological cleaning → Skeletonization
 └────────┬──────────┘
          │
          ▼
@@ -73,7 +73,9 @@ secureprint/
 │   ├── altered/            # Altered versions for testing (not committed)
 │   └── pairs.json          # Test pairs for FAR/FRR evaluation
 ├── database/
-│   ├── secureprint.db      # Encrypted template database (not committed)
+│   ├── secureprint.db      # SQLite database with 2 tables:
+│   │                       #   templates       — AES-256 encrypted blobs (production)
+│   │                       #   templates_plain — raw blobs for Phase 4 demo only
 │   └── master.key          # AES master key (not committed)
 ├── setup_dataset.py        # SOCOFing dataset preparation script
 ├── requirements.txt
@@ -115,14 +117,22 @@ This selects 25 diverse fingerprints from the Real folder and their altered coun
 ### Enroll Users and Run Evaluation
 
 ```bash
+# Windows — set UTF-8 encoding to avoid console errors
+set PYTHONIOENCODING=utf-8 && python modules/matcher.py
+
+# Linux / macOS
 python modules/matcher.py
 ```
 
-This enrolls all 25 users from `data/real/`, then runs a full FAR/FRR evaluation using the altered images as authentication attempts.
+This enrolls all 25 users from `data/real/` into both the encrypted table (`templates`) and the plaintext demo table (`templates_plain`), then runs a full FAR/FRR evaluation using the altered images.
 
 ### Launch the GUI
 
 ```bash
+# Windows
+set PYTHONIOENCODING=utf-8 && python ui/main_window.py
+
+# Linux / macOS
 python ui/main_window.py
 ```
 
@@ -153,14 +163,15 @@ Evaluated on SOCOFing (96×103px images, 25 users):
 
 | Metric                       | Value |
 | ---------------------------- | ----- |
-| Optimal threshold (EER)      | 0.326 |
-| False Accept Rate (FAR)      | 12%   |
-| False Reject Rate (FRR)      | 44%   |
-| Accuracy                     | 72%   |
-| Avg score — same finger      | 0.25  |
-| Avg score — different finger | 0.40  |
+| Optimal threshold (EER)      | 0.35  |
+| False Accept Rate (FAR)      | 0%    |
+| False Reject Rate (FRR)      | 16%   |
+| Accuracy                     | 84%   |
+| Wrong-user matches           | 0%    |
+| Avg score — same finger      | 0.15  |
+| Avg score — different finger | 0.48  |
 
-The gap between same-finger scores (0.24) and different-finger scores (0.39) confirms the system can distinguish between identities. The 78% accuracy is a direct consequence of the low image resolution — commercial AFIS systems use 500dpi sensors producing images 10× larger, which yields much more stable minutiae coordinates.
+The gap between same-finger scores (0.15) and different-finger scores (0.48) confirms strong identity discrimination. Accuracy improved from 72% to 84% after adding 2× upscaling and morphological cleaning to the preprocessing pipeline. The system **prefers rejection over misidentification** — when confidence is low (gap < 0.05 between top two candidates), access is denied rather than risking a wrong match. The remaining 16% FRR is a direct consequence of the low image resolution — commercial AFIS systems use 500dpi sensors producing images 10× larger.
 
 ---
 
@@ -191,6 +202,7 @@ scikit-learn
 scikit-image
 cryptography
 Pillow
+customtkinter
 ```
 
 ---

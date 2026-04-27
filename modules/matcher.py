@@ -26,8 +26,8 @@ from modules.template  import generate_template
 from modules.storage   import SecurePrintDB
 
 # Seuil optimal calibré sur notre dataset
-DEFAULT_THRESHOLD = 0.326
-MIN_GAP = 0.0  # disabled — gap check hurts recall on low-res images
+DEFAULT_THRESHOLD = 0.35
+MIN_GAP = 0.05  # reject if best and second-best are too close
 
 
 # ─────────────────────────────────────────────

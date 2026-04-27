@@ -29,6 +29,13 @@ def load_image(image_path):
     return image
 
 
+def upscale_image(image, scale=2):
+    h, w = image.shape
+    upscaled = cv2.resize(image, (w * scale, h * scale), interpolation=cv2.INTER_CUBIC)
+    print(f"[OK] Image agrandie : {image.shape} -> {upscaled.shape}")
+    return upscaled
+
+
 def normalize_image(image):
     """
     Normalise le contraste de l'image pour améliorer la qualité.
@@ -68,6 +75,14 @@ def binarize_image(image):
     )
     print("[OK] Image binarisée (seuillage adaptatif)")
     return binary
+
+
+def clean_binary(binary):
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    cleaned = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
+    cleaned = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN,  kernel)
+    print("[OK] Nettoyage morphologique applique")
+    return cleaned
 
 
 def skeletonize_image(binary_image):
@@ -111,13 +126,19 @@ def preprocess(image_path, save_steps=False, output_dir="data/debug"):
     if original is None:
         return None, None, None, None
 
-    # Étape 2 : Normalisation
-    normalized = normalize_image(original)
+    # Étape 2 : Agrandissement (2x) pour plus de détails
+    upscaled = upscale_image(original)
 
-    # Étape 3 : Binarisation
+    # Étape 3 : Normalisation
+    normalized = normalize_image(upscaled)
+
+    # Étape 4 : Binarisation
     binary = binarize_image(normalized)
 
-    # Étape 4 : Squelettisation
+    # Étape 5 : Nettoyage morphologique
+    binary = clean_binary(binary)
+
+    # Étape 6 : Squelettisation
     skeleton = skeletonize_image(binary)
 
     # Sauvegarde optionnelle des étapes pour debug visuel
