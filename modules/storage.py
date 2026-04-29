@@ -175,7 +175,7 @@ class SecurePrintDB:
         cursor.execute("DELETE FROM templates WHERE user_id = ?", (user_id,))
         cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
         self.conn.commit()
-        print(f"[OK] Utilisateur '{name}' supprimé (droit à l'oubli RGPD ✓)")
+        print(f"[OK] Utilisateur '{name}' supprime (droit a l'oubli RGPD OK)")
         return True
 
     def list_users(self) -> list:
@@ -200,8 +200,8 @@ class SecurePrintDB:
         print(f"  Fichier       : {self.db_path}")
         print(f"  Utilisateurs  : {nb_users}")
         print(f"  Templates     : {nb_templates}")
-        print(f"  Chiffrement   : AES-256 (Fernet) ✓")
-        print(f"  Clé séparée   : {os.path.abspath('database/master.key')} ✓")
+        print(f"  Chiffrement   : AES-256 (Fernet) OK")
+        print(f"  Cle separee   : {os.path.abspath('database/master.key')} OK")
         print(f"{'='*45}\n")
 
     # ── Phase 4 : Stockage EN CLAIR (démonstration avant chiffrement) ──────
@@ -231,7 +231,7 @@ class SecurePrintDB:
             """, (user_id, raw_bytes, finger_label, now))
             self.conn.commit()
             print(f"[Phase 4] Template EN CLAIR stocké pour '{name}' ({len(raw_bytes)} bytes)")
-            print(f"          ⚠ Lisible sans clé — voir Phase 5 pour le chiffrement")
+            print(f"          [!] Lisible sans cle -- voir Phase 5 pour le chiffrement")
             return True, "plaintext_created"
         except Exception as e:
             print(f"[ERREUR] Stockage en clair échoué pour '{name}' : {e}")

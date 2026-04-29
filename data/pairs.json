@@ -2,308 +2,723 @@
   "same_finger_pairs": [
     {
       "type": "same_finger",
-      "real": "real\\476__M_Left_middle_finger.BMP",
-      "altered": "altered\\476__M_Left_middle_finger_CR.BMP",
-      "person": 476,
-      "finger": "Left_middle"
+      "real": "real\\101_1.tif",
+      "altered": "altered\\101_2.tif",
+      "person": "101",
+      "finger": "101"
     },
     {
       "type": "same_finger",
-      "real": "real\\592__M_Right_middle_finger.BMP",
-      "altered": "altered\\592__M_Right_middle_finger_CR.BMP",
-      "person": 592,
-      "finger": "Right_middle"
+      "real": "real\\101_1.tif",
+      "altered": "altered\\101_3.tif",
+      "person": "101",
+      "finger": "101"
     },
     {
       "type": "same_finger",
-      "real": "real\\567__M_Right_ring_finger.BMP",
-      "altered": "altered\\567__M_Right_ring_finger_CR.BMP",
-      "person": 567,
-      "finger": "Right_ring"
+      "real": "real\\101_1.tif",
+      "altered": "altered\\101_4.tif",
+      "person": "101",
+      "finger": "101"
     },
     {
       "type": "same_finger",
-      "real": "real\\76__F_Right_middle_finger.BMP",
-      "altered": "altered\\76__F_Right_middle_finger_CR.BMP",
-      "person": 76,
-      "finger": "Right_middle"
+      "real": "real\\101_1.tif",
+      "altered": "altered\\101_5.tif",
+      "person": "101",
+      "finger": "101"
     },
     {
       "type": "same_finger",
-      "real": "real\\13__F_Right_middle_finger.BMP",
-      "altered": "altered\\13__F_Right_middle_finger_CR.BMP",
-      "person": 13,
-      "finger": "Right_middle"
+      "real": "real\\101_1.tif",
+      "altered": "altered\\101_6.tif",
+      "person": "101",
+      "finger": "101"
     },
     {
       "type": "same_finger",
-      "real": "real\\514__F_Left_ring_finger.BMP",
-      "altered": "altered\\514__F_Left_ring_finger_CR.BMP",
-      "person": 514,
-      "finger": "Left_ring"
+      "real": "real\\101_1.tif",
+      "altered": "altered\\101_7.tif",
+      "person": "101",
+      "finger": "101"
     },
     {
       "type": "same_finger",
-      "real": "real\\61__M_Left_little_finger.BMP",
-      "altered": "altered\\61__M_Left_little_finger_CR.BMP",
-      "person": 61,
-      "finger": "Left_little"
+      "real": "real\\101_1.tif",
+      "altered": "altered\\101_8.tif",
+      "person": "101",
+      "finger": "101"
     },
     {
       "type": "same_finger",
-      "real": "real\\417__M_Left_little_finger.BMP",
-      "altered": "altered\\417__M_Left_little_finger_CR.BMP",
-      "person": 417,
-      "finger": "Left_little"
+      "real": "real\\102_1.tif",
+      "altered": "altered\\102_2.tif",
+      "person": "102",
+      "finger": "102"
     },
     {
       "type": "same_finger",
-      "real": "real\\552__M_Right_little_finger.BMP",
-      "altered": "altered\\552__M_Right_little_finger_CR.BMP",
-      "person": 552,
-      "finger": "Right_little"
+      "real": "real\\102_1.tif",
+      "altered": "altered\\102_3.tif",
+      "person": "102",
+      "finger": "102"
     },
     {
       "type": "same_finger",
-      "real": "real\\399__M_Right_thumb_finger.BMP",
-      "altered": "altered\\399__M_Right_thumb_finger_Obl.BMP",
-      "person": 399,
-      "finger": "Right_thumb"
+      "real": "real\\102_1.tif",
+      "altered": "altered\\102_4.tif",
+      "person": "102",
+      "finger": "102"
     },
     {
       "type": "same_finger",
-      "real": "real\\292__M_Left_little_finger.BMP",
-      "altered": "altered\\292__M_Left_little_finger_CR.BMP",
-      "person": 292,
-      "finger": "Left_little"
+      "real": "real\\102_1.tif",
+      "altered": "altered\\102_5.tif",
+      "person": "102",
+      "finger": "102"
     },
     {
       "type": "same_finger",
-      "real": "real\\556__F_Left_ring_finger.BMP",
-      "altered": "altered\\556__F_Left_ring_finger_CR.BMP",
-      "person": 556,
-      "finger": "Left_ring"
+      "real": "real\\102_1.tif",
+      "altered": "altered\\102_6.tif",
+      "person": "102",
+      "finger": "102"
     },
     {
       "type": "same_finger",
-      "real": "real\\246__M_Right_ring_finger.BMP",
-      "altered": "altered\\246__M_Right_ring_finger_CR.BMP",
-      "person": 246,
-      "finger": "Right_ring"
+      "real": "real\\102_1.tif",
+      "altered": "altered\\102_7.tif",
+      "person": "102",
+      "finger": "102"
     },
     {
       "type": "same_finger",
-      "real": "real\\93__M_Right_index_finger.BMP",
-      "altered": "altered\\93__M_Right_index_finger_CR.BMP",
-      "person": 93,
-      "finger": "Right_index"
+      "real": "real\\102_1.tif",
+      "altered": "altered\\102_8.tif",
+      "person": "102",
+      "finger": "102"
     },
     {
       "type": "same_finger",
-      "real": "real\\43__F_Left_index_finger.BMP",
-      "altered": "altered\\43__F_Left_index_finger_CR.BMP",
-      "person": 43,
-      "finger": "Left_index"
+      "real": "real\\103_1.tif",
+      "altered": "altered\\103_2.tif",
+      "person": "103",
+      "finger": "103"
     },
     {
       "type": "same_finger",
-      "real": "real\\595__M_Left_thumb_finger.BMP",
-      "altered": "altered\\595__M_Left_thumb_finger_CR.BMP",
-      "person": 595,
-      "finger": "Left_thumb"
+      "real": "real\\103_1.tif",
+      "altered": "altered\\103_3.tif",
+      "person": "103",
+      "finger": "103"
     },
     {
       "type": "same_finger",
-      "real": "real\\462__M_Left_little_finger.BMP",
-      "altered": "altered\\462__M_Left_little_finger_CR.BMP",
-      "person": 462,
-      "finger": "Left_little"
+      "real": "real\\103_1.tif",
+      "altered": "altered\\103_4.tif",
+      "person": "103",
+      "finger": "103"
     },
     {
       "type": "same_finger",
-      "real": "real\\436__M_Right_middle_finger.BMP",
-      "altered": "altered\\436__M_Right_middle_finger_CR.BMP",
-      "person": 436,
-      "finger": "Right_middle"
+      "real": "real\\103_1.tif",
+      "altered": "altered\\103_5.tif",
+      "person": "103",
+      "finger": "103"
     },
     {
       "type": "same_finger",
-      "real": "real\\560__F_Right_ring_finger.BMP",
-      "altered": "altered\\560__F_Right_ring_finger_CR.BMP",
-      "person": 560,
-      "finger": "Right_ring"
+      "real": "real\\103_1.tif",
+      "altered": "altered\\103_6.tif",
+      "person": "103",
+      "finger": "103"
     },
     {
       "type": "same_finger",
-      "real": "real\\56__F_Right_index_finger.BMP",
-      "altered": "altered\\56__F_Right_index_finger_CR.BMP",
-      "person": 56,
-      "finger": "Right_index"
+      "real": "real\\103_1.tif",
+      "altered": "altered\\103_7.tif",
+      "person": "103",
+      "finger": "103"
     },
     {
       "type": "same_finger",
-      "real": "real\\224__M_Left_ring_finger.BMP",
-      "altered": "altered\\224__M_Left_ring_finger_CR.BMP",
-      "person": 224,
-      "finger": "Left_ring"
+      "real": "real\\103_1.tif",
+      "altered": "altered\\103_8.tif",
+      "person": "103",
+      "finger": "103"
     },
     {
       "type": "same_finger",
-      "real": "real\\293__F_Right_ring_finger.BMP",
-      "altered": "altered\\293__F_Right_ring_finger_CR.BMP",
-      "person": 293,
-      "finger": "Right_ring"
+      "real": "real\\104_1.tif",
+      "altered": "altered\\104_2.tif",
+      "person": "104",
+      "finger": "104"
     },
     {
       "type": "same_finger",
-      "real": "real\\573__F_Right_index_finger.BMP",
-      "altered": "altered\\573__F_Right_index_finger_CR.BMP",
-      "person": 573,
-      "finger": "Right_index"
+      "real": "real\\104_1.tif",
+      "altered": "altered\\104_3.tif",
+      "person": "104",
+      "finger": "104"
     },
     {
       "type": "same_finger",
-      "real": "real\\115__F_Left_middle_finger.BMP",
-      "altered": "altered\\115__F_Left_middle_finger_CR.BMP",
-      "person": 115,
-      "finger": "Left_middle"
+      "real": "real\\104_1.tif",
+      "altered": "altered\\104_4.tif",
+      "person": "104",
+      "finger": "104"
     },
     {
       "type": "same_finger",
-      "real": "real\\589__M_Left_middle_finger.BMP",
-      "altered": "altered\\589__M_Left_middle_finger_CR.BMP",
-      "person": 589,
-      "finger": "Left_middle"
+      "real": "real\\104_1.tif",
+      "altered": "altered\\104_5.tif",
+      "person": "104",
+      "finger": "104"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\104_1.tif",
+      "altered": "altered\\104_6.tif",
+      "person": "104",
+      "finger": "104"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\104_1.tif",
+      "altered": "altered\\104_7.tif",
+      "person": "104",
+      "finger": "104"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\104_1.tif",
+      "altered": "altered\\104_8.tif",
+      "person": "104",
+      "finger": "104"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\105_1.tif",
+      "altered": "altered\\105_2.tif",
+      "person": "105",
+      "finger": "105"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\105_1.tif",
+      "altered": "altered\\105_3.tif",
+      "person": "105",
+      "finger": "105"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\105_1.tif",
+      "altered": "altered\\105_4.tif",
+      "person": "105",
+      "finger": "105"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\105_1.tif",
+      "altered": "altered\\105_5.tif",
+      "person": "105",
+      "finger": "105"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\105_1.tif",
+      "altered": "altered\\105_6.tif",
+      "person": "105",
+      "finger": "105"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\105_1.tif",
+      "altered": "altered\\105_7.tif",
+      "person": "105",
+      "finger": "105"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\105_1.tif",
+      "altered": "altered\\105_8.tif",
+      "person": "105",
+      "finger": "105"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\106_1.tif",
+      "altered": "altered\\106_2.tif",
+      "person": "106",
+      "finger": "106"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\106_1.tif",
+      "altered": "altered\\106_3.tif",
+      "person": "106",
+      "finger": "106"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\106_1.tif",
+      "altered": "altered\\106_4.tif",
+      "person": "106",
+      "finger": "106"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\106_1.tif",
+      "altered": "altered\\106_5.tif",
+      "person": "106",
+      "finger": "106"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\106_1.tif",
+      "altered": "altered\\106_6.tif",
+      "person": "106",
+      "finger": "106"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\106_1.tif",
+      "altered": "altered\\106_7.tif",
+      "person": "106",
+      "finger": "106"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\106_1.tif",
+      "altered": "altered\\106_8.tif",
+      "person": "106",
+      "finger": "106"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\107_1.tif",
+      "altered": "altered\\107_2.tif",
+      "person": "107",
+      "finger": "107"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\107_1.tif",
+      "altered": "altered\\107_3.tif",
+      "person": "107",
+      "finger": "107"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\107_1.tif",
+      "altered": "altered\\107_4.tif",
+      "person": "107",
+      "finger": "107"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\107_1.tif",
+      "altered": "altered\\107_5.tif",
+      "person": "107",
+      "finger": "107"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\107_1.tif",
+      "altered": "altered\\107_6.tif",
+      "person": "107",
+      "finger": "107"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\107_1.tif",
+      "altered": "altered\\107_7.tif",
+      "person": "107",
+      "finger": "107"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\107_1.tif",
+      "altered": "altered\\107_8.tif",
+      "person": "107",
+      "finger": "107"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\108_1.tif",
+      "altered": "altered\\108_2.tif",
+      "person": "108",
+      "finger": "108"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\108_1.tif",
+      "altered": "altered\\108_3.tif",
+      "person": "108",
+      "finger": "108"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\108_1.tif",
+      "altered": "altered\\108_4.tif",
+      "person": "108",
+      "finger": "108"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\108_1.tif",
+      "altered": "altered\\108_5.tif",
+      "person": "108",
+      "finger": "108"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\108_1.tif",
+      "altered": "altered\\108_6.tif",
+      "person": "108",
+      "finger": "108"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\108_1.tif",
+      "altered": "altered\\108_7.tif",
+      "person": "108",
+      "finger": "108"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\108_1.tif",
+      "altered": "altered\\108_8.tif",
+      "person": "108",
+      "finger": "108"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\109_1.tif",
+      "altered": "altered\\109_2.tif",
+      "person": "109",
+      "finger": "109"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\109_1.tif",
+      "altered": "altered\\109_3.tif",
+      "person": "109",
+      "finger": "109"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\109_1.tif",
+      "altered": "altered\\109_4.tif",
+      "person": "109",
+      "finger": "109"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\109_1.tif",
+      "altered": "altered\\109_5.tif",
+      "person": "109",
+      "finger": "109"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\109_1.tif",
+      "altered": "altered\\109_6.tif",
+      "person": "109",
+      "finger": "109"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\109_1.tif",
+      "altered": "altered\\109_7.tif",
+      "person": "109",
+      "finger": "109"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\109_1.tif",
+      "altered": "altered\\109_8.tif",
+      "person": "109",
+      "finger": "109"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\110_1.tif",
+      "altered": "altered\\110_2.tif",
+      "person": "110",
+      "finger": "110"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\110_1.tif",
+      "altered": "altered\\110_3.tif",
+      "person": "110",
+      "finger": "110"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\110_1.tif",
+      "altered": "altered\\110_4.tif",
+      "person": "110",
+      "finger": "110"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\110_1.tif",
+      "altered": "altered\\110_5.tif",
+      "person": "110",
+      "finger": "110"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\110_1.tif",
+      "altered": "altered\\110_6.tif",
+      "person": "110",
+      "finger": "110"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\110_1.tif",
+      "altered": "altered\\110_7.tif",
+      "person": "110",
+      "finger": "110"
+    },
+    {
+      "type": "same_finger",
+      "real": "real\\110_1.tif",
+      "altered": "altered\\110_8.tif",
+      "person": "110",
+      "finger": "110"
     }
   ],
   "different_finger_pairs": [
     {
       "type": "different_finger",
-      "file1": "real\\476__M_Left_middle_finger.BMP",
-      "file2": "real\\592__M_Right_middle_finger.BMP"
+      "file1": "real\\101_1.tif",
+      "file2": "real\\102_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\592__M_Right_middle_finger.BMP",
-      "file2": "real\\567__M_Right_ring_finger.BMP"
+      "file1": "real\\101_1.tif",
+      "file2": "real\\103_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\567__M_Right_ring_finger.BMP",
-      "file2": "real\\76__F_Right_middle_finger.BMP"
+      "file1": "real\\101_1.tif",
+      "file2": "real\\104_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\76__F_Right_middle_finger.BMP",
-      "file2": "real\\13__F_Right_middle_finger.BMP"
+      "file1": "real\\101_1.tif",
+      "file2": "real\\105_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\13__F_Right_middle_finger.BMP",
-      "file2": "real\\514__F_Left_ring_finger.BMP"
+      "file1": "real\\101_1.tif",
+      "file2": "real\\106_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\514__F_Left_ring_finger.BMP",
-      "file2": "real\\61__M_Left_little_finger.BMP"
+      "file1": "real\\101_1.tif",
+      "file2": "real\\107_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\61__M_Left_little_finger.BMP",
-      "file2": "real\\417__M_Left_little_finger.BMP"
+      "file1": "real\\101_1.tif",
+      "file2": "real\\108_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\417__M_Left_little_finger.BMP",
-      "file2": "real\\552__M_Right_little_finger.BMP"
+      "file1": "real\\101_1.tif",
+      "file2": "real\\109_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\552__M_Right_little_finger.BMP",
-      "file2": "real\\399__M_Right_thumb_finger.BMP"
+      "file1": "real\\101_1.tif",
+      "file2": "real\\110_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\399__M_Right_thumb_finger.BMP",
-      "file2": "real\\292__M_Left_little_finger.BMP"
+      "file1": "real\\102_1.tif",
+      "file2": "real\\103_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\292__M_Left_little_finger.BMP",
-      "file2": "real\\556__F_Left_ring_finger.BMP"
+      "file1": "real\\102_1.tif",
+      "file2": "real\\104_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\556__F_Left_ring_finger.BMP",
-      "file2": "real\\246__M_Right_ring_finger.BMP"
+      "file1": "real\\102_1.tif",
+      "file2": "real\\105_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\246__M_Right_ring_finger.BMP",
-      "file2": "real\\93__M_Right_index_finger.BMP"
+      "file1": "real\\102_1.tif",
+      "file2": "real\\106_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\93__M_Right_index_finger.BMP",
-      "file2": "real\\43__F_Left_index_finger.BMP"
+      "file1": "real\\102_1.tif",
+      "file2": "real\\107_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\43__F_Left_index_finger.BMP",
-      "file2": "real\\595__M_Left_thumb_finger.BMP"
+      "file1": "real\\102_1.tif",
+      "file2": "real\\108_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\595__M_Left_thumb_finger.BMP",
-      "file2": "real\\462__M_Left_little_finger.BMP"
+      "file1": "real\\102_1.tif",
+      "file2": "real\\109_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\462__M_Left_little_finger.BMP",
-      "file2": "real\\436__M_Right_middle_finger.BMP"
+      "file1": "real\\102_1.tif",
+      "file2": "real\\110_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\436__M_Right_middle_finger.BMP",
-      "file2": "real\\560__F_Right_ring_finger.BMP"
+      "file1": "real\\103_1.tif",
+      "file2": "real\\104_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\560__F_Right_ring_finger.BMP",
-      "file2": "real\\56__F_Right_index_finger.BMP"
+      "file1": "real\\103_1.tif",
+      "file2": "real\\105_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\56__F_Right_index_finger.BMP",
-      "file2": "real\\224__M_Left_ring_finger.BMP"
+      "file1": "real\\103_1.tif",
+      "file2": "real\\106_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\224__M_Left_ring_finger.BMP",
-      "file2": "real\\293__F_Right_ring_finger.BMP"
+      "file1": "real\\103_1.tif",
+      "file2": "real\\107_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\293__F_Right_ring_finger.BMP",
-      "file2": "real\\573__F_Right_index_finger.BMP"
+      "file1": "real\\103_1.tif",
+      "file2": "real\\108_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\573__F_Right_index_finger.BMP",
-      "file2": "real\\115__F_Left_middle_finger.BMP"
+      "file1": "real\\103_1.tif",
+      "file2": "real\\109_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\115__F_Left_middle_finger.BMP",
-      "file2": "real\\589__M_Left_middle_finger.BMP"
+      "file1": "real\\103_1.tif",
+      "file2": "real\\110_1.tif"
     },
     {
       "type": "different_finger",
-      "file1": "real\\589__M_Left_middle_finger.BMP",
-      "file2": "real\\476__M_Left_middle_finger.BMP"
+      "file1": "real\\104_1.tif",
+      "file2": "real\\105_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\104_1.tif",
+      "file2": "real\\106_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\104_1.tif",
+      "file2": "real\\107_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\104_1.tif",
+      "file2": "real\\108_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\104_1.tif",
+      "file2": "real\\109_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\104_1.tif",
+      "file2": "real\\110_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\105_1.tif",
+      "file2": "real\\106_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\105_1.tif",
+      "file2": "real\\107_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\105_1.tif",
+      "file2": "real\\108_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\105_1.tif",
+      "file2": "real\\109_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\105_1.tif",
+      "file2": "real\\110_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\106_1.tif",
+      "file2": "real\\107_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\106_1.tif",
+      "file2": "real\\108_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\106_1.tif",
+      "file2": "real\\109_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\106_1.tif",
+      "file2": "real\\110_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\107_1.tif",
+      "file2": "real\\108_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\107_1.tif",
+      "file2": "real\\109_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\107_1.tif",
+      "file2": "real\\110_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\108_1.tif",
+      "file2": "real\\109_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\108_1.tif",
+      "file2": "real\\110_1.tif"
+    },
+    {
+      "type": "different_finger",
+      "file1": "real\\109_1.tif",
+      "file2": "real\\110_1.tif"
     }
   ],
-  "total_real": 25,
-  "total_altered": 25,
-  "persons": 25
+  "total_real": 10,
+  "total_altered": 70,
+  "persons": 10
 }

@@ -25,9 +25,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from modules.template  import generate_template
 from modules.storage   import SecurePrintDB
 
-# Seuil optimal calibré sur notre dataset
-DEFAULT_THRESHOLD = 0.35
-MIN_GAP = 0.05  # reject if best and second-best are too close
+# Seuil optimal calibré sur FVC2000 DB1_B
+DEFAULT_THRESHOLD = 0.031
+MIN_GAP = 0.005  # reject if best and second-best are too close
 
 
 # ─────────────────────────────────────────────
@@ -47,9 +47,11 @@ def cosine_distance(t1: np.ndarray, t2: np.ndarray) -> float:
 
 def combined_score(t1: np.ndarray, t2: np.ndarray) -> float:
     euc = euclidean_distance(t1, t2)
+    # Max possible euclidean distance for N_DISTANCES=496 values in [0, 1/sqrt(2)]
+    # = sqrt(496 * 0.5) = sqrt(248) ~= 15.75
+    euc_norm = euc / 26.0
     cos = cosine_distance(t1, t2)
-    euc_norm = euc / 6.0
-    return float(0.5 * euc_norm + 0.5 * cos)
+    return float(0.4 * euc_norm + 0.6 * cos)
 
 
 # ─────────────────────────────────────────────
@@ -145,8 +147,8 @@ def evaluate(pairs_json_path: str, db: SecurePrintDB, threshold: float = DEFAULT
     print(f"\n── Test paires DIFFÉRENTS doigts ({len(pairs['different_finger_pairs'])}) ──")
     for pair in pairs["different_finger_pairs"]:
         # Les deux templates sont déjà en base
-        name1 = f"User_{os.path.basename(pair['file1']).split('__')[0]}"
-        name2 = f"User_{os.path.basename(pair['file2']).split('__')[0]}"
+        name1 = f"User_{os.path.splitext(os.path.basename(pair['file1']))[0].split('_')[0]}"
+        name2 = f"User_{os.path.splitext(os.path.basename(pair['file2']))[0].split('_')[0]}"
         t1    = db_index.get(name1)
         t2    = db_index.get(name2)
 
@@ -168,12 +170,12 @@ def evaluate(pairs_json_path: str, db: SecurePrintDB, threshold: float = DEFAULT
     # ── Trouver seuil optimal (EER) ────────────────────────
     best_threshold = threshold
     best_eer       = abs(far - frr)
-    for t in np.arange(0.05, 1.0, 0.01):
+    for t in np.arange(0.001, 0.5, 0.001):
         f = sum(1 for s in same_scores if s >= t) / len(same_scores)
         a = sum(1 for s in diff_scores if s <  t) / len(diff_scores)
         if abs(f - a) < best_eer:
             best_eer       = abs(f - a)
-            best_threshold = round(float(t), 2)
+            best_threshold = round(float(t), 3)
 
     results = {
         "threshold"         : threshold,
@@ -219,18 +221,17 @@ def enroll_all(db: SecurePrintDB):
     images = sorted([
         os.path.join(data_dir, f)
         for f in os.listdir(data_dir)
-        if f.lower().endswith('.bmp')
+        if f.lower().endswith(('.bmp', '.tif'))
     ])
 
     print(f"\n[INFO] Enrôlement de {len(images)} images...\n")
     enrolled = 0
 
     for img_path in images:
-        fname   = os.path.basename(img_path)
-        parts   = fname.replace(".BMP", "").replace(".bmp", "").split("__")
-        name    = f"User_{parts[0]}"
-        details = parts[1].split("_") if len(parts) > 1 else []
-        finger  = f"{details[1]}_{details[2]}" if len(details) >= 3 else "unknown"
+        fname     = os.path.basename(img_path)
+        finger_id = os.path.splitext(fname)[0].split("_")[0]  # "101_1.tif" → "101"
+        name      = f"User_{finger_id}"
+        finger    = finger_id
 
         existing = db.get_user_template(name)
         if existing is not None:
@@ -273,7 +274,7 @@ if __name__ == "__main__":
 
     first_pair  = pairs["same_finger_pairs"][0]
     altered_img = os.path.join(root_dir, "data", first_pair["altered"])
-    true_name   = f"User_{first_pair['person']}"
+    true_name   = f"User_{first_pair['person']}"  # person is already finger_id e.g. "101"
 
     print(f"\n── Test authentification ──")
     print(f"   Image test   : {os.path.basename(altered_img)}")

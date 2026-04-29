@@ -126,19 +126,16 @@ def preprocess(image_path, save_steps=False, output_dir="data/debug"):
     if original is None:
         return None, None, None, None
 
-    # Étape 2 : Agrandissement (2x) pour plus de détails
-    upscaled = upscale_image(original)
+    # Étape 2 : Normalisation
+    normalized = normalize_image(original)
 
-    # Étape 3 : Normalisation
-    normalized = normalize_image(upscaled)
-
-    # Étape 4 : Binarisation
+    # Étape 3 : Binarisation
     binary = binarize_image(normalized)
 
-    # Étape 5 : Nettoyage morphologique
+    # Étape 4 : Nettoyage morphologique
     binary = clean_binary(binary)
 
-    # Étape 6 : Squelettisation
+    # Étape 5 : Squelettisation
     skeleton = skeletonize_image(binary)
 
     # Sauvegarde optionnelle des étapes pour debug visuel
@@ -159,6 +156,7 @@ def preprocess(image_path, save_steps=False, output_dir="data/debug"):
     return original, normalized, binary, skeleton
 
 
+
 # ─────────────────────────────────────────────
 #  TEST RAPIDE (exécuter directement ce fichier)
 # ─────────────────────────────────────────────
@@ -166,52 +164,35 @@ if __name__ == "__main__":
     import sys
     import os
 
-    # Utilise l'image passée en argument, ou la première image du dossier data/
     if len(sys.argv) > 1:
         test_image = sys.argv[1]
     else:
-        # Cherche automatiquement une image dans data/
-        data_dir = "data"
-        images = [f for f in os.listdir(data_dir) if f.endswith(('.png', '.jpg', '.BMP', '.tif'))]
+        root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        data_dir = os.path.join(root_dir, "data", "real")
+        images = [f for f in os.listdir(data_dir) if f.lower().endswith(('.png', '.jpg', '.bmp', '.tif'))]
         if not images:
-            print("[ERREUR] Aucune image trouvée dans le dossier data/")
+            print("[ERREUR] Aucune image trouvée dans le dossier data/real/")
             sys.exit(1)
         test_image = os.path.join(data_dir, images[0])
         print(f"[INFO] Aucun argument fourni, utilisation de : {test_image}")
 
-    # Lancer le prétraitement avec sauvegarde des étapes
-    original, normalized, binary, skeleton = preprocess(
-        test_image,
-        save_steps=True,
-        output_dir="data/debug"
-    )
+    original, normalized, binary, skeleton = preprocess(test_image, save_steps=True, output_dir="data/debug")
 
     if skeleton is not None:
-        # Resize images for better display (scale up small fingerprint images)
-        display_size = (400, 500)
-        original_display    = cv2.resize(original,    display_size, interpolation=cv2.INTER_LINEAR)
-        normalized_display  = cv2.resize(normalized,  display_size, interpolation=cv2.INTER_LINEAR)
-        binary_display      = cv2.resize(binary,      display_size, interpolation=cv2.INTER_LINEAR)
-        skeleton_display    = cv2.resize(skeleton,    display_size, interpolation=cv2.INTER_NEAREST)
-
-        # Show all 4 steps side by side
-        cv2.imshow("1 - Original",    original_display)
-        cv2.imshow("2 - Normalise",   normalized_display)
-        cv2.imshow("3 - Binaire",     binary_display)
-        cv2.imshow("4 - Squelette",   skeleton_display)
-
-        # Position windows neatly across the screen
-        cv2.moveWindow("1 - Original",   0,   50)
-        cv2.moveWindow("2 - Normalise",  420, 50)
-        cv2.moveWindow("3 - Binaire",    840, 50)
-        cv2.moveWindow("4 - Squelette",  1260,50)
-
+        display_size = (400, 400)
+        cv2.imshow("1 - Original",  cv2.resize(original,   display_size, interpolation=cv2.INTER_LINEAR))
+        cv2.imshow("2 - Normalise", cv2.resize(normalized, display_size, interpolation=cv2.INTER_LINEAR))
+        cv2.imshow("3 - Binaire",   cv2.resize(binary,     display_size, interpolation=cv2.INTER_LINEAR))
+        cv2.imshow("4 - Squelette", cv2.resize(skeleton,   display_size, interpolation=cv2.INTER_NEAREST))
+        cv2.moveWindow("1 - Original",  0,   50)
+        cv2.moveWindow("2 - Normalise", 420, 50)
+        cv2.moveWindow("3 - Binaire",   840, 50)
+        cv2.moveWindow("4 - Squelette", 1260, 50)
         print("\n[INFO] Appuyez sur 'Q' ou Echap pour fermer les fenetres...")
         while True:
             key = cv2.waitKey(100) & 0xFF
-            if key in [ord('q'), ord('Q'), 27]:  # Q or Escape
+            if key in [ord('q'), ord('Q'), 27]:
                 break
-            # Also close if any window is manually closed
             if cv2.getWindowProperty("4 - Squelette", cv2.WND_PROP_VISIBLE) < 1:
                 break
         cv2.destroyAllWindows()

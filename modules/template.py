@@ -1,9 +1,18 @@
 """
-Module 3 : Génération de Template
+Module 3 : Generation de Template
 Fichier : modules/template.py
 
-Rôle : Convertir les minutiae brutes en un vecteur de caractéristiques
-       fixe, normalisé et stable — prêt pour stockage et comparaison.
+Conforme au cahier des charges :
+  - Normalisation par centre de masse (translation invariance)
+  - Vecteur de distances entre paires de minutiae (non-inversible)
+  - Taille fixe independante du nombre de minutiae detectees
+
+Feature vector (3 parties) :
+  1. Distances paires ALL minutiae (N*(N-1)/2 valeurs) — geometrie globale
+  2. Distances paires BIFURCATIONS seulement (discriminant par type)
+  3. Carte de densite 4x4 separee par type (32 valeurs) — topologie locale
+
+Adapte pour FVC2000 DB1_B (300x300px).
 """
 
 import sys
@@ -14,164 +23,147 @@ import numpy as np
 from modules.preprocessor import preprocess
 from modules.minutiae import extract_minutiae, filter_minutiae
 
-# Taille fixe du vecteur final (indépendant du nombre de minutiae détectées)
-TEMPLATE_SIZE = 64  # must be multiple of 4 now: (x, y, type, angle) x 16
+N_MINUTIAE = 48   # minutiae retenues (centroid-closest)
+N_ALL      = (N_MINUTIAE * (N_MINUTIAE - 1)) // 2  # 1128 distances all
+N_BIF      = 20   # bifurcations retenues separement
+N_BIF_DIST = (N_BIF * (N_BIF - 1)) // 2            # 190 distances bifurcations
+N_DENSITY  = 32   # 4x4 grid x 2 types
 
 
 def normalize_minutiae(minutiae, image_shape):
-    """
-    Normalise les coordonnées et l'angle des minutiae.
-
-    Returns:
-        list: Liste de (x_norm, y_norm, type_val, angle_norm)
-              angle_norm : angle / 360 → [0, 1]
-    """
     h, w = image_shape
-    normalized = []
+    result = []
     for m in minutiae:
         x, y, mtype = m[0], m[1], m[2]
         angle = m[3] if len(m) > 3 else 0.0
-        x_norm     = x / w
-        y_norm     = y / h
-        type_val   = 0.0 if mtype == 'ending' else 1.0
-        angle_norm = angle / 360.0
-        normalized.append((x_norm, y_norm, type_val, angle_norm))
-    return normalized
+        result.append((x / w, y / h, 0.0 if mtype == 'ending' else 1.0, angle / 360.0))
+    return result
 
 
-def build_feature_vector(minutiae_normalized, template_size=TEMPLATE_SIZE):
-    # 4 values per minutia: (x, y, type, angle) → template_size // 4 minutiae
-    max_minutiae = template_size // 4
-    sorted_m = sorted(minutiae_normalized, key=lambda m: (m[0], m[1]))
-    sorted_m = sorted_m[:max_minutiae]
-    flat = []
-    for m in sorted_m:
-        flat.extend([m[0], m[1], m[2], m[3]])
-    while len(flat) < template_size:
-        flat.append(0.0)
-    return np.array(flat, dtype=np.float32)
+def select_by_centroid(minutiae_norm, n):
+    """Selectionne les n minutiae les plus proches du centre de masse."""
+    if len(minutiae_norm) <= n:
+        return minutiae_norm[:]
+    cx = np.mean([m[0] for m in minutiae_norm])
+    cy = np.mean([m[1] for m in minutiae_norm])
+    return sorted(minutiae_norm, key=lambda m: (m[0]-cx)**2 + (m[1]-cy)**2)[:n]
 
 
-def compute_pairwise_distances(minutiae_normalized, max_pairs=21):
+def pairwise_distances(points_norm):
+    """Vecteur trie de distances euclidiennes entre toutes les paires, normalise dans [0,1]."""
+    pts = points_norm
+    n = len(pts)
+    dists = []
+    for i in range(n):
+        for j in range(i + 1, n):
+            dx = pts[i][0] - pts[j][0]
+            dy = pts[i][1] - pts[j][1]
+            dists.append(float(np.sqrt(dx*dx + dy*dy)))
+    dists.sort()
+    return dists
+
+
+def density_map(minutiae_norm, grid=4):
     """
-    Calcule les distances entre toutes les paires de minutiae.
-    Ces distances sont invariantes à la translation et rotation légère.
-
-    Args:
-        minutiae_normalized (list): Minutiae normalisées
-        max_pairs (int): Nombre max de paires à garder
-
-    Returns:
-        numpy.ndarray: Vecteur de distances
+    Carte de densite spatiale grid x grid separee par type.
+    Endings dans les premieres grid^2 cellules, bifurcations dans les suivantes.
+    Normalise par le total de chaque type.
     """
-    distances = []
-    points = [(m[0], m[1]) for m in minutiae_normalized]
-
-    for i in range(len(points)):
-        for j in range(i + 1, len(points)):
-            d = np.sqrt((points[i][0] - points[j][0])**2 +
-                        (points[i][1] - points[j][1])**2)
-            distances.append(d)
-
-    # Trier et garder les max_pairs premières distances
-    distances.sort()
-    distances = distances[:max_pairs]
-
-    # Padding si pas assez de paires
-    while len(distances) < max_pairs:
-        distances.append(0.0)
-
-    return np.array(distances, dtype=np.float32)
+    endings = np.zeros((grid, grid), dtype=np.float32)
+    bifurcs = np.zeros((grid, grid), dtype=np.float32)
+    for m in minutiae_norm:
+        col = min(int(m[0] * grid), grid - 1)
+        row = min(int(m[1] * grid), grid - 1)
+        if m[2] == 0.0:
+            endings[row, col] += 1.0
+        else:
+            bifurcs[row, col] += 1.0
+    e_total = endings.sum()
+    b_total = bifurcs.sum()
+    if e_total > 0: endings /= e_total
+    if b_total > 0: bifurcs /= b_total
+    return np.concatenate([endings.flatten(), bifurcs.flatten()])
 
 
 def generate_template(image_path):
     """
-    Pipeline complet : image → template final.
+    Pipeline complet : image -> template.
 
-    Le template final combine :
-    - Le vecteur de positions normalisées (64 valeurs)
-    - Le vecteur de distances entre paires (21 valeurs)
-    Total : 85 valeurs — vecteur stable et discriminant
-
-    Args:
-        image_path (str): Chemin vers l'image d'empreinte
-
-    Returns:
-        numpy.ndarray: Template de taille fixe (85,), ou None si erreur
+    Template = concatenation de :
+      - 1128 distances paires (48 minutiae proches du centroide)
+      - 190  distances paires bifurcations (20 bifurcations proches du centroide)
+      - 32   valeurs de densite spatiale 4x4 par type
+    Total : 1350 valeurs, taille fixe, non-inversible.
     """
     print(f"\n{'='*50}")
-    print(f"  GÉNÉRATION DU TEMPLATE")
+    print(f"  GENERATION DU TEMPLATE")
     print(f"  Image : {os.path.basename(image_path)}")
     print(f"{'='*50}")
 
-    # Étape 1 : Prétraitement
     original, normalized, binary, skeleton = preprocess(image_path)
     if skeleton is None:
         return None
 
-    # Étape 2 : Extraction des minutiae
-    minutiae_raw = extract_minutiae(skeleton)
+    minutiae_raw   = extract_minutiae(skeleton)
     minutiae_clean = filter_minutiae(minutiae_raw, min_distance=8)
 
-    if len(minutiae_clean) < 5:
-        print(f"[ATTENTION] Seulement {len(minutiae_clean)} minutiae — qualité insuffisante")
+    if len(minutiae_clean) < N_MINUTIAE:
+        print(f"[ATTENTION] {len(minutiae_clean)} minutiae < {N_MINUTIAE} requis")
         return None
 
-    # Étape 3 : Normalisation
     minutiae_norm = normalize_minutiae(minutiae_clean, skeleton.shape)
 
-    # Étape 4 : Vecteur de positions
-    position_vector = build_feature_vector(minutiae_norm, TEMPLATE_SIZE)
+    # ── Partie 1 : distances toutes minutiae ──────────────
+    selected_all  = select_by_centroid(minutiae_norm, N_MINUTIAE)
+    dists_all     = pairwise_distances(selected_all)
+    while len(dists_all) < N_ALL: dists_all.append(0.0)
+    v_all = np.array(dists_all[:N_ALL], dtype=np.float32) / np.sqrt(2)
 
-    # Étape 5 : Vecteur de distances (plus robuste aux petites variations)
-    distance_vector = compute_pairwise_distances(minutiae_norm)
+    # ── Partie 2 : distances bifurcations (+ endings si pas assez) ──
+    bifurcs_only = [m for m in minutiae_norm if m[2] == 1.0]
+    endings_only = [m for m in minutiae_norm if m[2] == 0.0]
+    # Pad with endings if not enough bifurcations
+    type_pool = bifurcs_only[:]
+    if len(type_pool) < N_BIF:
+        needed = N_BIF - len(type_pool)
+        type_pool += select_by_centroid(endings_only, needed)
+    selected_bif = select_by_centroid(type_pool, N_BIF)
+    dists_bif = pairwise_distances(selected_bif)
+    while len(dists_bif) < N_BIF_DIST: dists_bif.append(0.0)
+    v_bif = np.array(dists_bif[:N_BIF_DIST], dtype=np.float32) / np.sqrt(2)
 
-    # Étape 6 : Concaténation → template final
-    template = np.concatenate([position_vector, distance_vector])
+    # ── Partie 3 : carte de densite spatiale ──────────────
+    v_density = density_map(minutiae_norm, grid=4)
 
-    print(f"[OK] Template genere - taille : {template.shape[0]} valeurs")
-    print(f"     - Positions+Angles : {len(position_vector)} valeurs")
-    print(f"     - Distances        : {len(distance_vector)} valeurs")
-    print(f"     - Min: {template.min():.4f} | Max: {template.max():.4f} | Moy: {template.mean():.4f}")
+    template = np.concatenate([v_all, v_bif, v_density])
+
+    print(f"[OK] Template genere : {template.shape[0]} valeurs")
+    print(f"     Minutiae : {len(minutiae_clean)} detectees | {N_MINUTIAE} retenues")
+    print(f"     Parties  : {N_ALL} dist-all + {N_BIF_DIST} dist-bif + {N_DENSITY} densite")
+    print(f"     Min: {template.min():.4f} | Max: {template.max():.4f} | Moy: {template.mean():.4f}")
     print(f"{'='*50}\n")
 
     return template
 
 
 # ─────────────────────────────────────────────
-#  TEST RAPIDE — compare 2 images
+#  TEST RAPIDE
 # ─────────────────────────────────────────────
 if __name__ == "__main__":
-    import os
-
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     data_dir = os.path.join(root_dir, "data", "real")
-
     images = sorted([
         os.path.join(data_dir, f)
         for f in os.listdir(data_dir)
         if f.lower().endswith(('.bmp', '.png', '.jpg', '.tif'))
     ])
-
     if len(images) < 2:
-        print("[ERREUR] Il faut au moins 2 images dans data/ pour tester")
+        print("[ERREUR] Il faut au moins 2 images dans data/real/")
         sys.exit(1)
-
-    print("=== TEST : Génération de 2 templates ===\n")
-
-    # Générer les templates pour les 2 premières images
     t1 = generate_template(images[0])
     t2 = generate_template(images[1])
-
     if t1 is not None and t2 is not None:
-        # Calculer la similarité entre les deux templates
-        distance = np.linalg.norm(t1 - t2)
-        dot = np.dot(t1, t2) / (np.linalg.norm(t1) * np.linalg.norm(t2))
-        cosine_dist = 1 - dot
-
-        print("=== RÉSULTAT DE COMPARAISON ===")
-        print(f"  Image 1 : {os.path.basename(images[0])}")
-        print(f"  Image 2 : {os.path.basename(images[1])}")
-        print(f"  Distance Euclidienne : {distance:.4f}")
-        print(f"  Distance Cosinus     : {cosine_dist:.4f}")
-        print(f"  (Plus la distance est faible, plus les empreintes sont similaires)")
+        from modules.matcher import combined_score
+        score = combined_score(t1, t2)
+        print(f"  {os.path.basename(images[0])} vs {os.path.basename(images[1])}")
+        print(f"  Score : {score:.4f}  (doigts differents — doit etre eleve)")
